@@ -6,7 +6,7 @@ import { Colors } from '@cnpcbuilder/common'
 // import { natsWrapper } from '../../nats-wrapper';
 
 it('returns 404 if color are not found ', async () => {
-  const response = await request(app)
+  await request(app)
     .patch(`/api/parts/color/${mongoose.Types.ObjectId().toHexString()}`)
     .set('Cookie', global.signin())
     .send({
@@ -40,7 +40,7 @@ it('update color with valid arguement', async () => {
 
   await color.save()
 
-  const response = await request(app)
+  await request(app)
     .patch(`/api/parts/color/${color._id}`)
     .set('Cookie', global.signin())
     .send({
