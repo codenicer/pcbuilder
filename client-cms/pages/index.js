@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import MainSideBar from '../components/MainSidebar/MainSideBar'
 import PartList from '../components/PartList/PartList'
+import PartListHeader from '../components/PartListHeader/PartListHeader'
 import style from '../styles/Home.module.scss'
 
 const Home = (props) => {
@@ -32,22 +33,7 @@ const Home = (props) => {
             <>
               <MainSideBar />
               <div className={style.partListContainer}>
-                <div className={style.partListHeaders}>
-                  <p className={style.partItemCount}>
-                    Item: <strong>12</strong> out of <strong>1212</strong>
-                  </p>
-                  <div className={style.select}>
-                    <label>filter:</label>
-                    <select>
-                      <option>Part Type</option>
-                      <option>Processor</option>
-                      <option>Casing</option>
-                      <option>Memory</option>
-                      <option>Video Card</option>
-                    </select>
-                    <div className={style.select__arrow}></div>
-                  </div>
-                </div>
+                <PartListHeader />
                 <PartList />
               </div>
             </>
