@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-cms-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-cms
+  template:
+    metadata:
+      labels:
+        app: client-cms
+    spec:
+      containers:
+        - name: client-cms
+          image: codenicer/client-cms
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-cms-srv
+spec:
+  selector:
+    app: client-cms
+  ports:
+    - name: client-cms
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

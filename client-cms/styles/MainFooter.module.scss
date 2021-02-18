@@ -1,0 +1,27 @@
+@import '_variables.scss';
+
+.mainFooter {
+  box-shadow: 0 -2px 2px 2px rgba(0, 0, 0, 0.438);
+  margin-top: 1px;
+  border-top: $default-border;
+  border-radius: 0.1rem;
+  background-color: $color-darker;
+  color: white;
+
+  .footerNavLinks {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+
+    .footerNavLink {
+      margin: 0 2rem;
+      font-size: 0.8rem;
+
+      &:hover {
+        transform: scale(1.07);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+  }
+}

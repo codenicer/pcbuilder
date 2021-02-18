@@ -1,0 +1,114 @@
+@import '_variables.scss';
+
+.partContent,
+.partContentStatus,
+.partViewButton,
+.partContentManufacturer,
+.partContentName,
+.partContentType,
+.part {
+  margin: 0;
+  padding: 0;
+}
+
+.partList {
+  margin-top: 5rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .part {
+    margin: 0.8rem 0;
+    border-radius: 0.4rem;
+    width: 90%;
+    border: $default-border;
+    background-color: $color-darker;
+
+    .partContent {
+      text-align: center;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 1fr 2fr 1fr;
+
+      justify-items: center;
+      align-items: center;
+
+      .partContentStatus,
+      .partContentType {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        border-radius: 0.2rem;
+        padding: 2px 8px;
+        text-transform: uppercase;
+      }
+
+      .partContentStatus,
+      .partContentName,
+      .partContentManufacturer {
+        justify-self: start;
+        margin-left: 1rem;
+      }
+
+      .partContentStatus {
+        grid-area: 1 / 1;
+      }
+
+      .partContentType {
+        color: $color-light;
+        grid-area: 1 / 3;
+      }
+
+      .partContentName {
+        font-size: 1.2rem;
+        color: $color-lighter;
+        grid-area: 2 / 1 / span 1 / span 3;
+      }
+
+      .partContentManufacturer {
+        font-weight: lighter;
+        color: #b1b1b1;
+        margin-bottom: 1rem;
+        grid-area: 3 /1;
+      }
+
+      .partViewButton {
+        background-color: $color-darkest;
+        color: $color-light;
+        border: $default-border;
+        border-radius: 0.2rem;
+        width: 5rem;
+        height: 1.3rem;
+        grid-area: 3/3;
+
+        &:hover,
+        &:active {
+          cursor: pointer;
+          background-color: $color-light;
+          color: $color-darkest;
+          outline-style: none;
+        }
+      }
+
+      @media (min-width: 40rem) {
+        .partContentType,
+        .partViewButton {
+          justify-self: flex-end;
+          margin-right: 2rem;
+        }
+      }
+    }
+  }
+}
+
+.partStatusPublish {
+  color: #14d886;
+  background-color: #14d8865b;
+}
+
+.partStatusNotPublish {
+  color: #df7927;
+  background-color: #d86c1460;
+}

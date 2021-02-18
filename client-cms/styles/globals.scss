@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;900&display=swap');
+@import '_variables.scss';
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  height: calc(100vh - 3.5rem);
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  margin-top: 3.5rem;
+  border-radius: 0.1rem;
+  height: calc(100vh - 3.5rem);
+  display: grid;
+  grid-template-rows: 2fr 3rem;
+}
+
+.homeContainer {
+  height: 100vh;
+}
+
+.mainContent {
+  background-color: $color-darkest;
+  border-radius: 0.1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toast {
+  top: 3.6rem;
+}
+
+.toast-body {
+  min-height: 2rem;
+  background-color: $color-dark;
+  color: $color-lighter;
+  border: $default-border;
+  border-radius: 0.4rem;
+  font-size: 1rem;
+  padding: 5px;
+}
+
+.toast-progbar {
+  background-color: $color-light;
+}
+
+.toast-progbar-success {
+  background-color: #008000d3;
+}
+.toast-progbar-error {
+  background-color: #ff00009d;
+}

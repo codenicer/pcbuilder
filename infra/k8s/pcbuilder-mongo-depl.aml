@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pcbuilder-mongo-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pcbuilder-mongo
+  template:
+    metadata:
+      labels:
+        app: pcbuilder-mongo
+    spec:
+      containers:
+        - name: pcbuilder-mongo
+          image: mongo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pcbuilder-mongo-srv
+spec:
+  selector:
+    app: pcbuilder-mongo
+  ports:
+    - name: db
+      protocol: TCP
+      port: 27017
+      targetPort: 27017

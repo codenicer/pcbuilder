@@ -1,0 +1,67 @@
+@import '_variables.scss';
+
+.mainNav {
+  background-color: $color-darker;
+  height: 3.5rem;
+  border-radius: 0 0 0.1rem 0.1rem;
+  border-bottom: $default-border;
+  box-shadow: 2px 2px 2px 1px $color-shadow-default;
+  margin-bottom: 1px;
+  display: flex;
+  position: fixed;
+  width: 100vw;
+  top: 0;
+  left: 0;
+  justify-content: space-between;
+  z-index: 100;
+
+  .navIcon {
+    color: $color-lighter;
+    align-self: center;
+    margin-left: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .navLinks {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    margin-right: 2rem;
+    color: $color-lighter;
+    font-size: 0.9rem;
+    justify-content: center;
+    align-items: center;
+
+    li {
+      margin: 0 1rem;
+      padding: 0;
+
+      &:hover {
+        transform: scale(1.07);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .navLinks_Login li:first-of-type {
+    &:hover {
+      transform: scale(1);
+      text-decoration: none;
+      cursor: default;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    & {
+      justify-content: space-around;
+    }
+  }
+
+  @media (min-width: 79rem) {
+    & {
+      justify-content: space-between;
+    }
+  }
+}

@@ -1,0 +1,64 @@
+@import '_variables.scss';
+
+.mainSidebar {
+  transform: translateX(-90%);
+  box-shadow: 1px 0 2px 1px rgba(0, 0, 0, 0.438);
+  position: fixed;
+  z-index: 101;
+  top: 3.55rem;
+  left: 0;
+  background: $color-darker;
+  border-right: $default-border;
+  width: 50%;
+  max-width: 16.5rem;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  z-index: 5;
+  transition: transform 200ms ease-out;
+
+  &:active,
+  &:hover,
+  &:focus {
+    transform: translateX(0);
+  }
+
+  @media (min-width: 79rem) {
+    & {
+      position: inherit;
+      transform: translateX(0);
+    }
+  }
+}
+
+.SelectionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  .selection {
+    margin: 2rem 0.5rem;
+    padding: 0 0 0 1rem;
+    display: flex;
+    align-items: center;
+    border-radius: 0.4rem;
+
+    &:hover {
+      background-color: $color-dark;
+      cursor: pointer;
+      p {
+        text-shadow: 2px 2px 2px $color-darkest;
+      }
+    }
+
+    p {
+      margin-left: 0.7rem;
+      color: $color-lighter;
+      font-size: 0.8rem;
+    }
+
+    .sideBarIcon {
+      height: 28px;
+    }
+  }
+}
