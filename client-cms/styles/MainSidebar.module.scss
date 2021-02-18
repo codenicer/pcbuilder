@@ -16,7 +16,6 @@
   grid-template-rows: 2fr 1fr;
   z-index: 5;
   transition: transform 200ms ease-out;
-
   &:active,
   &:hover,
   &:focus {
@@ -25,7 +24,7 @@
 
   @media (min-width: 79rem) {
     & {
-      position: inherit;
+      // position: inherit;
       transform: translateX(0);
     }
   }

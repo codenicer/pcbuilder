@@ -1,19 +1,30 @@
 @import '_variables.scss';
 
-.partListContainer {
-  padding-left: 1.7rem;
-  display: grid;
-  height: 100%;
+.partListHeaders {
+  color: $color-lighter;
+  padding: 2rem;
+  padding-right: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  display: flex;
   width: 100%;
-  grid-template-rows: 4rem auto;
+  height: 5rem;
+  margin: auto;
+  background-color: $color-darkest;
+  box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.281);
+  .partItemCount {
+    font-size: 0.9rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+  }
 
   @media (min-width: 79rem) {
     & {
-      padding-left: 0;
-      margin-left: 16.3rem;
-      .partListHeaders {
-        width: calc(100% - 13.8rem);
-      }
+      width: calc(100% - 13.8rem);
     }
   }
 }
