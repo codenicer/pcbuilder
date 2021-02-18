@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
 import { ItemType } from '../../../models/item-types'
-// import { natsWrapper } from '../../nats-wrapper';
 
 it('returns 404 if item type are not found ', async () => {
   const res = await request(app)
