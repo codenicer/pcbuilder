@@ -2,12 +2,10 @@ import mongoose from 'mongoose'
 
 interface ItemTypeAttrs {
   name: string
-  specification: string
 }
 
 export interface ItemTypeDoc extends mongoose.Document {
   name: string
-  specification: string
 }
 
 interface ItemTypeModel extends mongoose.Model<ItemTypeDoc> {

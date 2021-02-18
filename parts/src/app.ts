@@ -19,6 +19,7 @@ import * as MemoryRouter from './routes/memory'
 import * as ManufacturerRouter from './routes/manufacturer'
 import * as ItemCodeRouter from './routes/item-codes'
 import * as ColorRouter from './routes/colors'
+import * as ItemTypeRouter from './routes/item-types'
 // import { showOrderRouter } from './routes/show';
 
 const app = express()
@@ -31,6 +32,12 @@ app.use(
   })
 )
 app.use(currentUser)
+
+//* item type routes
+app.use(ItemTypeRouter.EditItemTypeRouter)
+app.use(ItemTypeRouter.NewItemTypeRouter)
+app.use(ItemTypeRouter.ShowItemTypeRouter)
+app.use(ItemTypeRouter.AllItemTypeRouter)
 
 //* colors routes
 app.use(ColorRouter.EditColorRouter)
