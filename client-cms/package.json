@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next",
-    "test": "jest --watchAll --no-cache"
+    "test": "jest --watchAll --no-cache",
+    "test:ci": "jest"
   },
   "jest": {
     "setupFilesAfterEnv": [
