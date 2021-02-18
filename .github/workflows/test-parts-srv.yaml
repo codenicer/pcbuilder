@@ -3,7 +3,7 @@ name: tests-parts-srv
 on:
   pull_request:
     paths:
-      - 'parts-cms/**'
+      - 'parts/**'
 
 jobs:
   build:
