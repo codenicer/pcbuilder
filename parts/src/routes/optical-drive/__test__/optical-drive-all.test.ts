@@ -1,11 +1,18 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { OpticalDrive } from '../../../models/optical-drive'
 
 async function createOpticalDrive() {
-  const opticalDrive = OpticalDrive.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+
+  const opticalDrive = OpticalDrive.build({
+    itemInfo,
   })
   await opticalDrive.save()
 }

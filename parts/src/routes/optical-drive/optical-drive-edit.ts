@@ -148,7 +148,7 @@ router.patch(
       throw new NotFoundError()
     }
 
-    const isAlreadyExist = await OpticalDrive.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')

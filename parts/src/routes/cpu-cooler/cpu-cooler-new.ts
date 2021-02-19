@@ -9,6 +9,7 @@ import { CpuCooler } from '../../models/cpu-cooler'
 import { CpuSocket } from '../../models/cpu-socket'
 import { Images } from '../../models/images'
 import { ItemCode } from '../../models/item-code'
+import { Items } from '../../models/items'
 import { Manufacturer } from '../../models/manufacturer'
 import {
   checkMinMax,
@@ -80,21 +81,86 @@ router.post(
       measurements,
     } = req.body
 
-    const isAlreadyExist = await CpuCooler.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    const cpuCooler = CpuCooler.build({
+    const newItems = Items.build({
       name,
+      measurements,
+    })
+
+    if (manufacturer) {
+      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
+        name: manufacturer.name,
+      })
+
+      if (manufacturerIsAlreadyExist) {
+        newItems.manufacturer = manufacturerIsAlreadyExist
+      } else {
+        const newManufacturer = Manufacturer.build({
+          name: manufacturer.name,
+          info: manufacturer.info,
+        })
+
+        await newManufacturer.save()
+        newItems.manufacturer = newManufacturer
+      }
+    }
+
+    if (itemCode) {
+      for (let code of itemCode) {
+        const itemCodeIsAlreadyExist = await ItemCode.findOne({
+          code: code,
+        })
+
+        if (itemCodeIsAlreadyExist) {
+          newItems.itemCode.addToSet(itemCodeIsAlreadyExist)
+        } else {
+          const newItemCode = ItemCode.build({
+            code: code,
+          })
+
+          await newItemCode.save()
+          newItems.itemCode.addToSet(newItemCode)
+        }
+      }
+    }
+
+    if (itemImages) {
+      for (let itemImage of itemImages) {
+        let itemImageIsAlreadyExist = await Images.findOne({
+          name: itemImage.name,
+          url: itemImage.url,
+        })
+
+        if (itemImageIsAlreadyExist) {
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        } else {
+          let newImage = Images.build({
+            name: itemImage.name,
+            url: itemImage.url,
+          })
+
+          await newImage.save()
+
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        }
+      }
+    }
+
+    await newItems.save()
+
+    const cpuCooler = CpuCooler.build({
+      itemInfo: newItems,
       coolerModel,
       fanRpm,
       noiceLevel,
       bearing,
       waterCooled,
       fanless,
-      measurements,
     })
 
     if (cpuSocket) {
@@ -113,65 +179,6 @@ router.post(
           await newCpuSocket.save()
 
           cpuCooler.cpuSocket?.addToSet(newCpuSocket)
-        }
-      }
-    }
-
-    if (manufacturer) {
-      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
-        name: manufacturer.name,
-      })
-
-      if (manufacturerIsAlreadyExist) {
-        cpuCooler.manufacturer = manufacturerIsAlreadyExist
-      } else {
-        const newManufacturer = Manufacturer.build({
-          name: manufacturer.name,
-          info: manufacturer.info,
-        })
-
-        await newManufacturer.save()
-        cpuCooler.manufacturer = newManufacturer
-      }
-    }
-
-    if (itemCode) {
-      for (let code of itemCode) {
-        const itemCodeIsAlreadyExist = await ItemCode.findOne({
-          code: code,
-        })
-
-        if (itemCodeIsAlreadyExist) {
-          cpuCooler.itemCode.addToSet(itemCodeIsAlreadyExist)
-        } else {
-          const newItemCode = ItemCode.build({
-            code: code,
-          })
-
-          await newItemCode.save()
-          cpuCooler.itemCode.addToSet(newItemCode)
-        }
-      }
-    }
-
-    if (itemImages) {
-      for (let itemImage of itemImages) {
-        let itemImageIsAlreadyExist = await Images.findOne({
-          name: itemImage.name,
-          url: itemImage.url,
-        })
-
-        if (itemImageIsAlreadyExist) {
-          cpuCooler.itemImages?.addToSet(itemImageIsAlreadyExist)
-        } else {
-          let newImage = Images.build({
-            name: itemImage.name,
-            url: itemImage.url,
-          })
-
-          await newImage.save()
-
-          cpuCooler.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }

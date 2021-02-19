@@ -94,7 +94,7 @@ router.patch(
       throw new NotFoundError()
     }
 
-    const isAlreadyExist = await Storage.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')

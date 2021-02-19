@@ -84,7 +84,7 @@ router.post(
       measurements,
     } = req.body
 
-    const isAlreadyExist = await PowerSupply.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')

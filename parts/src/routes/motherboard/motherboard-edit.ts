@@ -24,6 +24,7 @@ import mongoose from 'mongoose'
 import { Manufacturer } from '../../models/manufacturer'
 import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
+import { Items } from '../../models/items'
 
 const router = express.Router()
 
@@ -159,13 +160,21 @@ router.patch(
       throw new NotFoundError()
     }
 
-    const isAlreadyExist = await MotherBoard.findOne({ name })
+    const itemInfo = await Items.findById({
+      _id: motherboardDoesExist?.itemInfo,
+    })
+
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) motherboardDoesExist.set({ name })
+    if (name) itemInfo.set({ name })
     if (wirelessNetworking) motherboardDoesExist.set({ wirelessNetworking })
     if (onBoardVideo) motherboardDoesExist.set({ onBoardVideo })
     if (sliCrossFire) motherboardDoesExist.set({ sliCrossFire })
@@ -175,8 +184,8 @@ router.patch(
       motherboardDoesExist.set({ supportEcc })
     if (typeof raidSupport === 'boolean')
       motherboardDoesExist.set({ raidSupport })
-    if (typeof publish === 'boolean') motherboardDoesExist.set({ publish })
-    if (measurements) motherboardDoesExist.set({ measurements })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
+    if (measurements) itemInfo.set({ measurements })
 
     if (cpuSocket) {
       const cpuSocketIsAlreadyExist = await CpuSocket.findOne({
@@ -354,7 +363,7 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        motherboardDoesExist.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.manufacturer = manufacturerIsAlreadyExist
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -362,12 +371,12 @@ router.patch(
         })
 
         await newManufacturer.save()
-        motherboardDoesExist.manufacturer = newManufacturer
+        itemInfo.manufacturer = newManufacturer
       }
     }
 
     if (itemCode) {
-      motherboardDoesExist.set({ itemCode: [] })
+      itemInfo.set({ itemCode: [] })
 
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
@@ -375,20 +384,20 @@ router.patch(
         })
 
         if (itemCodeIsAlreadyExist) {
-          motherboardDoesExist.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          motherboardDoesExist.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      motherboardDoesExist.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
           name: itemImage.name,
@@ -396,7 +405,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          motherboardDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -405,10 +414,12 @@ router.patch(
 
           await newImage.save()
 
-          motherboardDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
+
+    await itemInfo.save()
 
     await motherboardDoesExist.save()
     await motherboardDoesExist
@@ -420,9 +431,28 @@ router.patch(
       .populate('pcieSlots')
       .populate('usbSlots')
       .populate('sataSlots')
-      .populate('manufacturer')
-      .populate('itemCode')
-      .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
       .execPopulate()
 
     res.status(200).send(motherboardDoesExist)

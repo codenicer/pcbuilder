@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Memory } from '../../../models/memory'
 
 // import { natsWrapper } from '../../nats-wrapper';
@@ -128,10 +129,14 @@ it('returns 400 with invalid memory arguments', async () => {
 })
 
 it('dont create duplicate memory name', async () => {
-  const memory = Memory.build({
+  const itemInfo = Items.build({
     name: 'memoryname',
   })
 
+  await itemInfo.save()
+  const memory = Memory.build({
+    itemInfo,
+  })
   await memory.save()
 
   const res = await request(app)
@@ -140,6 +145,7 @@ it('dont create duplicate memory name', async () => {
     .send({
       name: 'memoryname',
     })
+    .expect(400)
 
   expect(res.body.errors[0].message).toEqual('Name is already exist')
 })

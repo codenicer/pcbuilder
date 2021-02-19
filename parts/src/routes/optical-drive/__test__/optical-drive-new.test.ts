@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { OpticalDrive } from '../../../models/optical-drive'
 
 it('returns 400 with invalid optical drive arguments', async () => {
@@ -181,8 +182,14 @@ it('returns 400 with invalid optical drive arguments', async () => {
 })
 
 it('dont create duplicate optical drive name', async () => {
-  const opticalDrive = OpticalDrive.build({
+  const itemInfo = Items.build({
     name: 'opticalDrivename',
+  })
+
+  await itemInfo.save()
+
+  const opticalDrive = OpticalDrive.build({
+    itemInfo,
   })
   await opticalDrive.save()
 

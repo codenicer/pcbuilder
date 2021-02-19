@@ -3,15 +3,15 @@ import mongoosePaginate from 'mongoose-paginate-v2'
 import { ChipsetDoc } from './chipset'
 import { CpuSocketDoc } from './cpu-socket'
 import { FormFactorDoc } from './form-factor'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 import { MemorySpeedDoc } from './memory-speed'
 import { MemoryTypeDoc } from './memory-type'
 import { PcieSlotsDoc } from './pcie-slot'
 import { SataSlotsDoc } from './sata-slot'
 import { UsbSlotsDoc } from './usb-slots'
 
-interface MotherboardAttrs extends ItemAttrs {
-  name: string
+interface MotherboardAttrs {
+  itemInfo: ItemsDoc
   cpuSocket?: CpuSocketDoc
   formFactor?: FormFactorDoc
   chipset?: ChipsetDoc
@@ -29,8 +29,8 @@ interface MotherboardAttrs extends ItemAttrs {
   raidSupport?: boolean
 }
 
-interface MotherboardDoc extends ItemDoc {
-  name: string
+interface MotherboardDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   cpuSocket?: CpuSocketDoc
   formFactor?: FormFactorDoc
   chipset?: ChipsetDoc
@@ -54,8 +54,9 @@ interface MotherBoardModel extends mongoose.PaginateModel<MotherboardDoc> {
 
 const motherboardSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     cpuSocket: {
@@ -96,36 +97,6 @@ const motherboardSchema = new mongoose.Schema(
         ref: 'SataSlots',
       },
     ],
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
-    },
     wirelessNetworking: {
       type: String,
     },
@@ -146,11 +117,6 @@ const motherboardSchema = new mongoose.Schema(
     },
     raidSupport: {
       type: Boolean,
-    },
-    publish: {
-      type: Boolean,
-      required: true,
-      default: false,
     },
   },
   {

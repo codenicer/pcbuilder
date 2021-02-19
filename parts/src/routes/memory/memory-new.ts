@@ -12,6 +12,7 @@ import { mandatoryItemRequimentsBodyChecker } from '../../utils/custom-function-
 import { Manufacturer } from '../../models/manufacturer'
 import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
+import { Items } from '../../models/items'
 
 const router = express.Router()
 
@@ -83,21 +84,84 @@ router.post(
       measurements,
     } = req.body
 
-    const isAlreadyExist = await Memory.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    const memory = Memory.build({
+    const newItems = Items.build({
       name,
+      measurements,
+    })
+
+    if (manufacturer) {
+      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
+        name: manufacturer.name,
+      })
+
+      if (manufacturerIsAlreadyExist) {
+        newItems.manufacturer = manufacturerIsAlreadyExist
+      } else {
+        const newManufacturer = Manufacturer.build({
+          name: manufacturer.name,
+          info: manufacturer.info,
+        })
+
+        await newManufacturer.save()
+        newItems.manufacturer = newManufacturer
+      }
+    }
+
+    if (itemCode) {
+      for (let code of itemCode) {
+        const itemCodeIsAlreadyExist = await ItemCode.findOne({
+          code: code,
+        })
+
+        if (itemCodeIsAlreadyExist) {
+          newItems.itemCode.addToSet(itemCodeIsAlreadyExist)
+        } else {
+          const newItemCode = ItemCode.build({
+            code: code,
+          })
+
+          await newItemCode.save()
+          newItems.itemCode.addToSet(newItemCode)
+        }
+      }
+    }
+
+    if (itemImages) {
+      for (let itemImage of itemImages) {
+        let itemImageIsAlreadyExist = await Images.findOne({
+          name: itemImage.name,
+          url: itemImage.url,
+        })
+
+        if (itemImageIsAlreadyExist) {
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        } else {
+          let newImage = Images.build({
+            name: itemImage.name,
+            url: itemImage.url,
+          })
+
+          await newImage.save()
+
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        }
+      }
+    }
+
+    const memory = Memory.build({
+      itemInfo: newItems,
       module,
       timing,
       casLatency,
       pricePerGb,
       voltage,
       heatSpreader,
-      measurements,
     })
 
     if (memoryType) {
@@ -132,65 +196,6 @@ router.post(
         await newMemorySpeed.save()
 
         memory.memorySpeed = newMemorySpeed
-      }
-    }
-
-    if (manufacturer) {
-      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
-        name: manufacturer.name,
-      })
-
-      if (manufacturerIsAlreadyExist) {
-        memory.manufacturer = manufacturerIsAlreadyExist
-      } else {
-        const newManufacturer = Manufacturer.build({
-          name: manufacturer.name,
-          info: manufacturer.info,
-        })
-
-        await newManufacturer.save()
-        memory.manufacturer = newManufacturer
-      }
-    }
-
-    if (itemCode) {
-      for (let code of itemCode) {
-        const itemCodeIsAlreadyExist = await ItemCode.findOne({
-          code: code,
-        })
-
-        if (itemCodeIsAlreadyExist) {
-          memory.itemCode.addToSet(itemCodeIsAlreadyExist)
-        } else {
-          const newItemCode = ItemCode.build({
-            code: code,
-          })
-
-          await newItemCode.save()
-          memory.itemCode.addToSet(newItemCode)
-        }
-      }
-    }
-
-    if (itemImages) {
-      for (let itemImage of itemImages) {
-        let itemImageIsAlreadyExist = await Images.findOne({
-          name: itemImage.name,
-          url: itemImage.url,
-        })
-
-        if (itemImageIsAlreadyExist) {
-          memory.itemImages?.addToSet(itemImageIsAlreadyExist)
-        } else {
-          let newImage = Images.build({
-            name: itemImage.name,
-            url: itemImage.url,
-          })
-
-          await newImage.save()
-
-          memory.itemImages?.addToSet(itemImageIsAlreadyExist)
-        }
       }
     }
 

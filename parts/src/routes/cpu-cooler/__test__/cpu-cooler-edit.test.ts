@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
 import { CpuCooler } from '../../../models/cpu-cooler'
+import { Items } from '../../../models/items'
 
 it('returns 404 if cpu cooler was not found', async () => {
   await request(app)
@@ -14,9 +15,16 @@ it('returns 404 if cpu cooler was not found', async () => {
 })
 
 it('updates cpu cooler if provided valid arguments', async () => {
-  const cpuCooler = CpuCooler.build({
-    name: 'cpuCooler',
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
   })
+
+  await itemInfo.save()
+
+  const cpuCooler = CpuCooler.build({
+    itemInfo,
+  })
+  await cpuCooler.save()
 
   await cpuCooler.save()
 
@@ -30,9 +38,9 @@ it('updates cpu cooler if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedCpuCooler = await CpuCooler.findById(id)
+  let updatedCpuCooler = await CpuCooler.findById(id).populate('itemInfo')
 
-  expect(updatedCpuCooler!.name).toEqual('updatedcpucoolername')
+  expect(updatedCpuCooler!.itemInfo.name).toEqual('updatedcpucoolername')
 
   await request(app)
     .patch(`/api/parts/cpucooler/${id}`)
@@ -123,8 +131,31 @@ it('updates cpu cooler if provided valid arguments', async () => {
     .expect(200)
 
   updatedCpuCooler = await CpuCooler.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedCpuCooler!.publish).toEqual(false)
+  expect(updatedCpuCooler!.itemInfo.publish).toEqual(false)
 
   await request(app)
     .patch(`/api/parts/cpucooler/${id}`)
@@ -137,10 +168,33 @@ it('updates cpu cooler if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedCpuCooler = await CpuCooler.findById(id).populate('manufacturer')
+  updatedCpuCooler = await CpuCooler.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedCpuCooler!.manufacturer.name).toEqual('manname')
-  expect(updatedCpuCooler!.manufacturer.info).toEqual('randominfo')
+  expect(updatedCpuCooler!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updatedCpuCooler!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/cpucooler/${id}`)
@@ -150,9 +204,32 @@ it('updates cpu cooler if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedCpuCooler = await CpuCooler.findById(id).populate('itemCode')
+  updatedCpuCooler = await CpuCooler.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedCpuCooler!.itemCode.length).toEqual(1)
+  expect(updatedCpuCooler!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/cpucooler/${id}`)
@@ -162,9 +239,32 @@ it('updates cpu cooler if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedCpuCooler = await CpuCooler.findById(id).populate('itemImages')
+  updatedCpuCooler = await CpuCooler.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedCpuCooler!.itemImages.length).toEqual(1)
+  expect(updatedCpuCooler!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/cpucooler/${id}`)
@@ -180,8 +280,32 @@ it('updates cpu cooler if provided valid arguments', async () => {
     .expect(200)
 
   updatedCpuCooler = await CpuCooler.findById(id)
-  expect(updatedCpuCooler!.measurements.length).toEqual(1)
-  expect(updatedCpuCooler!.measurements.width).toEqual(2)
-  expect(updatedCpuCooler!.measurements.height).toEqual(3)
-  expect(updatedCpuCooler!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+
+  expect(updatedCpuCooler!.itemInfo.measurements.length).toEqual(1)
+  expect(updatedCpuCooler!.itemInfo.measurements.width).toEqual(2)
+  expect(updatedCpuCooler!.itemInfo.measurements.height).toEqual(3)
+  expect(updatedCpuCooler!.itemInfo.measurements.dimension).toEqual('dimension')
 })

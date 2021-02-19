@@ -47,6 +47,9 @@ const powerSupplySchema = new mongoose.Schema(
         ref: 'PowerSupplyConnector',
       },
     ],
+    efficiencyRating: {
+      type: String,
+    },
     modular: {
       type: String,
     },

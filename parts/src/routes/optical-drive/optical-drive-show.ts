@@ -13,9 +13,28 @@ router.get(
     const opticalDrive = await OpticalDrive.findById(id)
       .populate('formFactor')
       .populate('interfaces')
-      .populate('manufacturer')
-      .populate('itemCode')
-      .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
       .exec()
 
     if (!opticalDrive) {

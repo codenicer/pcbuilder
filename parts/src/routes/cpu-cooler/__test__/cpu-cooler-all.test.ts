@@ -2,11 +2,18 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
 import { CpuCooler } from '../../../models/cpu-cooler'
+import { Items } from '../../../models/items'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createCpuCooler() {
-  const cpuCooler = CpuCooler.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+
+  const cpuCooler = CpuCooler.build({
+    itemInfo,
   })
   await cpuCooler.save()
 }

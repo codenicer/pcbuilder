@@ -1,12 +1,18 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Memory } from '../../../models/memory'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createMemory() {
-  const memory = Memory.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+  const memory = Memory.build({
+    itemInfo,
   })
   await memory.save()
 }

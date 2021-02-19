@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { MotherBoard } from '../../../models/motherboard'
 
 // import { natsWrapper } from '../../nats-wrapper';
@@ -192,9 +193,16 @@ it('returns 400 with invalid motherboard arguments', async () => {
 })
 
 it('dont create duplicate motherboard name', async () => {
-  const motherboard = MotherBoard.build({
+  const itemInfo = Items.build({
     name: 'motherboardname',
   })
+
+  await itemInfo.save()
+
+  const motherboard = MotherBoard.build({
+    itemInfo,
+  })
+
   await motherboard.save()
 
   const res = await request(app)

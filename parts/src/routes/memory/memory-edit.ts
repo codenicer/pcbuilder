@@ -13,6 +13,7 @@ import { mandatoryItemRequimentsBodyChecker } from '../../utils/custom-function-
 import { Manufacturer } from '../../models/manufacturer'
 import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
+import { Items } from '../../models/items'
 
 const router = express.Router()
 
@@ -98,21 +99,30 @@ router.patch(
     if (!memoryDoesExist) {
       throw new NotFoundError()
     }
-    const isAlreadyExist = await Memory.findOne({ name })
+
+    const itemInfo = await Items.findById({
+      _id: memoryDoesExist?.itemInfo,
+    })
+
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) memoryDoesExist.set({ name })
+    if (name) itemInfo.set({ name })
     if (module) memoryDoesExist.set({ module })
     if (timing) memoryDoesExist.set({ timing })
     if (casLatency) memoryDoesExist.set({ casLatency })
     if (pricePerGb) memoryDoesExist.set({ pricePerGb })
     if (voltage) memoryDoesExist.set({ voltage })
     if (typeof heatSpreader === 'boolean') memoryDoesExist.set({ heatSpreader })
-    if (measurements) memoryDoesExist.set({ measurements })
-    if (typeof publish === 'boolean') memoryDoesExist.set({ publish })
+    if (measurements) itemInfo.set({ measurements })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
 
     if (memoryType) {
       const memoryTypeIsAlreadyExist = await MemoryType.findOne({
@@ -155,7 +165,7 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        memoryDoesExist.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.manufacturer = manufacturerIsAlreadyExist
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -163,12 +173,12 @@ router.patch(
         })
 
         await newManufacturer.save()
-        memoryDoesExist.manufacturer = newManufacturer
+        itemInfo.manufacturer = newManufacturer
       }
     }
 
     if (itemCode) {
-      memoryDoesExist.set({ itemCode: [] })
+      itemInfo.set({ itemCode: [] })
 
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
@@ -176,20 +186,20 @@ router.patch(
         })
 
         if (itemCodeIsAlreadyExist) {
-          memoryDoesExist.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          memoryDoesExist.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      memoryDoesExist.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
 
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
@@ -198,7 +208,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          memoryDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -207,19 +217,39 @@ router.patch(
 
           await newImage.save()
 
-          memoryDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
 
+    await itemInfo.save()
     await memoryDoesExist.save()
 
     await memoryDoesExist
       .populate('memorySpeed')
       .populate('memoryType')
-      .populate('manufacturer')
-      .populate('itemCode')
-      .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
       .execPopulate()
 
     res.status(200).send(memoryDoesExist)

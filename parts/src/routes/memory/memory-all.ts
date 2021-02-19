@@ -24,10 +24,28 @@ router.get(
         page: checkedPage,
         populate: [
           'memorySpeed',
-          'manufacturer',
-          'memoryType',
-          'itemCode',
-          'itemImages',
+          {
+            path: 'itemInfo',
+            model: 'Items',
+            populate: [
+              {
+                path: 'manufacturer',
+                model: 'Manufacturer',
+              },
+              {
+                path: 'itemCode',
+                model: 'ItemCode',
+              },
+              {
+                path: 'itemImages',
+                model: 'Images',
+              },
+              {
+                path: 'itemType',
+                model: 'ItemType',
+              },
+            ],
+          },
         ],
       }
     )

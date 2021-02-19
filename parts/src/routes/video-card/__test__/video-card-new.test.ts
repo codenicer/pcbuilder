@@ -185,7 +185,7 @@ it('returns 400 with invalid videocard arguments', async () => {
 
 it('dont create duplicate videocard name', async () => {
   const itemInfo = Items.build({
-    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+    name: 'videocardname',
   })
   await itemInfo.save()
 

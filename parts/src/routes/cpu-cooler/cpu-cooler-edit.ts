@@ -10,6 +10,7 @@ import { CpuCooler } from '../../models/cpu-cooler'
 import { CpuSocket } from '../../models/cpu-socket'
 import { Images } from '../../models/images'
 import { ItemCode } from '../../models/item-code'
+import { Items } from '../../models/items'
 import { Manufacturer } from '../../models/manufacturer'
 import {
   checkMinMax,
@@ -94,22 +95,29 @@ router.patch(
     if (!cpuCooler) {
       throw new NotFoundError()
     }
+    const itemInfo = await Items.findById({
+      _id: cpuCooler?.itemInfo,
+    })
 
-    const isAlreadyExist = await CpuCooler.findOne({ name })
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) cpuCooler.set({ name })
+    if (name) itemInfo.set({ name })
     if (coolerModel) cpuCooler.set({ coolerModel })
     if (fanRpm) cpuCooler.set({ fanRpm })
     if (bearing) cpuCooler.set({ bearing })
     if (noiceLevel) cpuCooler.set({ noiceLevel })
-    if (measurements) cpuCooler.set({ measurements })
+    if (measurements) itemInfo.set({ measurements })
     if (typeof waterCooled === 'boolean') cpuCooler.set({ waterCooled })
     if (typeof fanless === 'boolean') cpuCooler.set({ fanless })
-    if (typeof publish === 'boolean') cpuCooler.set({ publish })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
 
     if (cpuSocket) {
       cpuCooler.set({ cpuSocket: [] })
@@ -139,7 +147,7 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        cpuCooler.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.manufacturer = manufacturerIsAlreadyExist
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -147,12 +155,12 @@ router.patch(
         })
 
         await newManufacturer.save()
-        cpuCooler.manufacturer = newManufacturer
+        itemInfo.manufacturer = newManufacturer
       }
     }
 
     if (itemCode) {
-      cpuCooler.set({ itemCode: [] })
+      itemInfo.set({ itemCode: [] })
 
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
@@ -160,20 +168,20 @@ router.patch(
         })
 
         if (itemCodeIsAlreadyExist) {
-          cpuCooler.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          cpuCooler.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      cpuCooler.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
 
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
@@ -182,7 +190,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          cpuCooler.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -191,17 +199,38 @@ router.patch(
 
           await newImage.save()
 
-          cpuCooler.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
 
+    await itemInfo.save()
     await cpuCooler.save()
     await cpuCooler
       .populate('cpuSocket')
-      .populate('manufacturer')
-      .populate('itemCode')
-      .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
+      .execPopulate()
 
     res.status(200).send(cpuCooler)
   }
