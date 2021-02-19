@@ -1,12 +1,19 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Processor } from '../../../models/processor'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createProcessor() {
-  const processor = Processor.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+
+  const processor = Processor.build({
+    itemInfo,
   })
   await processor.save()
 }

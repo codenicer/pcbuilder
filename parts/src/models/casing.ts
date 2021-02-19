@@ -1,10 +1,9 @@
 import mongoose from 'mongoose'
 import mongoosePaginate from 'mongoose-paginate-v2'
 import { FormFactorDoc } from './form-factor'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 
-interface CasingAttrs extends ItemAttrs {
-  name: string
+interface CasingAttrs {
   motherboardFromFactor?: mongoose.Types.Array<FormFactorDoc>
   caseFrontPannelUsb?: string[]
   maxVideoCardLength?: string[]
@@ -16,10 +15,10 @@ interface CasingAttrs extends ItemAttrs {
   fullHeightExpansionSlot?: number
   internal25Bays?: number
   internal35Bays?: number
+  itemInfo: ItemsDoc
 }
 
-interface CasingDoc extends ItemDoc {
-  name: string
+interface CasingDoc extends mongoose.Document {
   motherboardFromFactor: mongoose.Types.Array<FormFactorDoc>
   caseFrontPannelUsb: string[]
   maxVideoCardLength: string[]
@@ -31,6 +30,7 @@ interface CasingDoc extends ItemDoc {
   fullHeightExpansionSlot: number
   internal25Bays: number
   internal35Bays: number
+  itemInfo: ItemsDoc
 }
 
 interface CasingModel extends mongoose.PaginateModel<CasingDoc> {
@@ -39,45 +39,16 @@ interface CasingModel extends mongoose.PaginateModel<CasingDoc> {
 
 const casingSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
-    chipset: [
+    motherboardFromFactor: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'FormFactor',
       },
     ],
-    manufacturer: {
+    itemInfo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
+      ref: 'Items',
+      required: true,
     },
     caseFrontPannelUsb: [
       {
@@ -114,9 +85,6 @@ const casingSchema = new mongoose.Schema(
     },
     internal35Bays: {
       type: Number,
-    },
-    publish: {
-      type: Boolean,
     },
   },
   {

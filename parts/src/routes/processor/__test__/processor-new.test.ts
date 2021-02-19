@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Processor } from '../../../models/processor'
 
 // import { natsWrapper } from '../../nats-wrapper';
@@ -210,10 +211,15 @@ it('returns 400 with invalid processor arguments', async () => {
 })
 
 it('dont create duplicate processor name', async () => {
-  const processor = Processor.build({
+  const itemInfo = Items.build({
     name: 'processorname',
   })
 
+  await itemInfo.save()
+
+  const processor = Processor.build({
+    itemInfo,
+  })
   await processor.save()
 
   const res = await request(app)

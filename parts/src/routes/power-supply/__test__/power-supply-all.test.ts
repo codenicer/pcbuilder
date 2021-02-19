@@ -1,12 +1,18 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { PowerSupply } from '../../../models/power-supply'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createPowerSupply() {
-  const powerSupply = PowerSupply.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+  const powerSupply = PowerSupply.build({
+    itemInfo,
   })
   await powerSupply.save()
 }

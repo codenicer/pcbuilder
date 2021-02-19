@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Storage } from '../../../models/storage'
 
 it('returns 404 if storage was not found', async () => {
@@ -22,8 +23,14 @@ it('returns 404 if storage was not found', async () => {
 })
 
 it('updates storage if provided valid arguments', async () => {
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+
   const storage = Storage.build({
-    name: 'storage',
+    itemInfo,
   })
 
   await storage.save()
@@ -38,9 +45,9 @@ it('updates storage if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedStorage = await Storage.findById(id)
+  let updatedStorage = await Storage.findById(id).populate('itemInfo')
 
-  expect(updatedStorage!.name).toEqual('updatedstoragename')
+  expect(updatedStorage!.itemInfo.name).toEqual('updatedstoragename')
 
   await request(app)
     .patch(`/api/parts/storage/${id}`)
@@ -123,8 +130,31 @@ it('updates storage if provided valid arguments', async () => {
     .expect(200)
 
   updatedStorage = await Storage.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedStorage!.publish).toEqual(true)
+  expect(updatedStorage!.itemInfo.publish).toEqual(true)
 
   await request(app)
     .patch(`/api/parts/storage/${id}`)
@@ -137,10 +167,33 @@ it('updates storage if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedStorage = await Storage.findById(id).populate('manufacturer')
+  updatedStorage = await Storage.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedStorage!.manufacturer.name).toEqual('manname')
-  expect(updatedStorage!.manufacturer.info).toEqual('randominfo')
+  expect(updatedStorage!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updatedStorage!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/storage/${id}`)
@@ -150,9 +203,32 @@ it('updates storage if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedStorage = await Storage.findById(id).populate('itemCode')
+  updatedStorage = await Storage.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedStorage!.itemCode.length).toEqual(1)
+  expect(updatedStorage!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/storage/${id}`)
@@ -162,9 +238,32 @@ it('updates storage if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedStorage = await Storage.findById(id).populate('itemImages')
+  updatedStorage = await Storage.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedStorage!.itemImages.length).toEqual(1)
+  expect(updatedStorage!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/storage/${id}`)
@@ -180,8 +279,32 @@ it('updates storage if provided valid arguments', async () => {
     .expect(200)
 
   updatedStorage = await Storage.findById(id)
-  expect(updatedStorage!.measurements.length).toEqual(1)
-  expect(updatedStorage!.measurements.width).toEqual(2)
-  expect(updatedStorage!.measurements.height).toEqual(3)
-  expect(updatedStorage!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+
+  expect(updatedStorage!.itemInfo.measurements.length).toEqual(1)
+  expect(updatedStorage!.itemInfo.measurements.width).toEqual(2)
+  expect(updatedStorage!.itemInfo.measurements.height).toEqual(3)
+  expect(updatedStorage!.itemInfo.measurements.dimension).toEqual('dimension')
 })

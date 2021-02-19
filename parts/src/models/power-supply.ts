@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
 import mongoosePaginate from 'mongoose-paginate-v2'
 import { FormFactorDoc } from './form-factor'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 import { PowerSupplyConnectorDoc } from './power-supply-connector'
 
-interface PowerSupplyAttrs extends ItemAttrs {
-  name: string
+interface PowerSupplyAttrs {
+  itemInfo: ItemsDoc
   formFactor?: FormFactorDoc
   psuConnectors?: mongoose.Types.Array<PowerSupplyConnectorDoc>
   efficiencyRating?: string
@@ -15,8 +15,8 @@ interface PowerSupplyAttrs extends ItemAttrs {
   fanless?: boolean
 }
 
-export interface PowerSupplyDoc extends ItemDoc {
-  name: string
+export interface PowerSupplyDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   formFactor: FormFactorDoc
   psuConnectors: mongoose.Types.Array<PowerSupplyConnectorDoc>
   efficiencyRating: string
@@ -32,8 +32,9 @@ interface PowerSupplyModel extends mongoose.PaginateModel<PowerSupplyDoc> {
 
 const powerSupplySchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     formFactor: {
@@ -46,39 +47,6 @@ const powerSupplySchema = new mongoose.Schema(
         ref: 'PowerSupplyConnector',
       },
     ],
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
-    },
-    efficiencyRating: {
-      type: String,
-    },
     modular: {
       type: String,
     },
@@ -90,11 +58,6 @@ const powerSupplySchema = new mongoose.Schema(
     },
     fanless: {
       type: Boolean,
-    },
-    publish: {
-      type: Boolean,
-      required: true,
-      default: false,
     },
   },
   {

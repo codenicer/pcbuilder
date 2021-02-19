@@ -2,10 +2,9 @@ import mongoose from 'mongoose'
 import mongooosePaginate from 'mongoose-paginate-v2'
 import { FormFactorDoc } from './form-factor'
 import { InterfacesDoc } from './interface'
-import { ItemAttrs, ItemDoc } from './item'
-
-interface OpticalDriveAttrs extends ItemAttrs {
-  name: string
+import { ItemsDoc } from './items'
+interface OpticalDriveAttrs {
+  itemInfo: ItemsDoc
   interfaces?: InterfacesDoc
   formFactor?: FormFactorDoc
   bufferCache?: number
@@ -23,8 +22,8 @@ interface OpticalDriveAttrs extends ItemAttrs {
   cdNegativeRWSpeed?: number
 }
 
-interface OpticalDriveDoc extends ItemDoc {
-  name: string
+interface OpticalDriveDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   interfaces: InterfacesDoc
   formFactor?: FormFactorDoc
   bufferCache?: number
@@ -48,8 +47,9 @@ interface OpticalDiveModel extends mongoose.PaginateModel<OpticalDriveDoc> {
 
 const OpticalDriveSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     bufferCache: {
@@ -98,36 +98,6 @@ const OpticalDriveSchema = new mongoose.Schema(
     formFactor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'FormFactor',
-    },
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
     },
   },
   {

@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import MainNavbar from '../../components/MainNavbar'
 import MainFooter from '../../components/MainFooter'
 import style from '../../styles/Signin.module.scss'
-import toaster from '../../utils/toaster'
+import { toaster } from '../../utils/toaster'
 import { useEffect, useState } from 'react'
 import { signinUser, setUser } from '../../store/actions/userAction'
 

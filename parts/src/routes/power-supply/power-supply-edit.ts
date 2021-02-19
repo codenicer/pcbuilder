@@ -9,6 +9,7 @@ import { body } from 'express-validator'
 import { FormFactor } from '../../models/form-factor'
 import { Images } from '../../models/images'
 import { ItemCode } from '../../models/item-code'
+import { Items } from '../../models/items'
 import { Manufacturer } from '../../models/manufacturer'
 import { PowerSupply } from '../../models/power-supply'
 import { PowerSupplyConnector } from '../../models/power-supply-connector'
@@ -98,20 +99,26 @@ router.patch(
       throw new NotFoundError()
     }
 
+    const itemInfo = await Items.findById({ _id: powerSupply?.itemInfo })
+
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
     const isAlreadyExist = await PowerSupply.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) powerSupply.set({ name })
+    if (name) itemInfo.set({ name })
     if (efficiencyRating) powerSupply.set({ efficiencyRating })
     if (modular) powerSupply.set({ modular })
     if (type) powerSupply.set({ type })
     if (wattage) powerSupply.set({ wattage })
-    if (measurements) powerSupply.set({ measurements })
+    if (measurements) itemInfo.set({ measurements })
     if (typeof fanless === 'boolean') powerSupply.set({ fanless })
-    if (typeof publish === 'boolean') powerSupply.set({ publish })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
 
     if (formFactor) {
       const formFactorIsAlreadyExist = await FormFactor.findOne({
@@ -167,7 +174,7 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        powerSupply.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.manufacturer = manufacturerIsAlreadyExist
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -175,12 +182,12 @@ router.patch(
         })
 
         await newManufacturer.save()
-        powerSupply.manufacturer = newManufacturer
+        itemInfo.manufacturer = newManufacturer
       }
     }
 
     if (itemCode) {
-      powerSupply.set({ itemCode: [] })
+      itemInfo.set({ itemCode: [] })
 
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
@@ -188,20 +195,20 @@ router.patch(
         })
 
         if (itemCodeIsAlreadyExist) {
-          powerSupply.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          powerSupply.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      powerSupply.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
 
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
@@ -210,7 +217,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          powerSupply.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -219,11 +226,12 @@ router.patch(
 
           await newImage.save()
 
-          powerSupply.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
 
+    await itemInfo.save()
     await powerSupply.save()
     await powerSupply
       .populate('formFactor')

@@ -1,13 +1,20 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { VideoCard } from '../../../models/video-card'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createVideoCard() {
-  const video = VideoCard.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
   })
+  await itemInfo.save()
+
+  const video = VideoCard.build({
+    itemInfo,
+  })
+
   await video.save()
 }
 

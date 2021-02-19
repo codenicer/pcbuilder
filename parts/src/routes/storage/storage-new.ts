@@ -10,6 +10,7 @@ import { FormFactor } from '../../models/form-factor'
 import { Images } from '../../models/images'
 import { Interfaces } from '../../models/interface'
 import { ItemCode } from '../../models/item-code'
+import { Items } from '../../models/items'
 import { Manufacturer } from '../../models/manufacturer'
 import { Storage } from '../../models/storage'
 import { mandatoryItemRequimentsBodyChecker } from '../../utils/custom-function-extension'
@@ -78,13 +79,78 @@ router.post(
       throw new BadRequestError('Name is already exist')
     }
 
-    const storage = Storage.build({
+    const newItems = Items.build({
       name,
+      measurements,
+    })
+
+    if (manufacturer) {
+      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
+        name: manufacturer.name,
+      })
+
+      if (manufacturerIsAlreadyExist) {
+        newItems.manufacturer = manufacturerIsAlreadyExist
+      } else {
+        const newManufacturer = Manufacturer.build({
+          name: manufacturer.name,
+          info: manufacturer.info,
+        })
+
+        await newManufacturer.save()
+        newItems.manufacturer = newManufacturer
+      }
+    }
+
+    if (itemCode) {
+      for (let code of itemCode) {
+        const itemCodeIsAlreadyExist = await ItemCode.findOne({
+          code: code,
+        })
+
+        if (itemCodeIsAlreadyExist) {
+          newItems.itemCode.addToSet(itemCodeIsAlreadyExist)
+        } else {
+          const newItemCode = ItemCode.build({
+            code: code,
+          })
+
+          await newItemCode.save()
+          newItems.itemCode.addToSet(newItemCode)
+        }
+      }
+    }
+
+    if (itemImages) {
+      for (let itemImage of itemImages) {
+        let itemImageIsAlreadyExist = await Images.findOne({
+          name: itemImage.name,
+          url: itemImage.url,
+        })
+
+        if (itemImageIsAlreadyExist) {
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        } else {
+          let newImage = Images.build({
+            name: itemImage.name,
+            url: itemImage.url,
+          })
+
+          await newImage.save()
+
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        }
+      }
+    }
+
+    await newItems.save()
+
+    const storage = Storage.build({
+      itemInfo: newItems,
       type,
       capacity,
       pricePerGb,
       isNvme,
-      measurements,
     })
 
     if (interfaces) {
@@ -121,65 +187,6 @@ router.post(
         await newFormFactor.save()
 
         storage.formFactor = newFormFactor
-      }
-    }
-
-    if (manufacturer) {
-      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
-        name: manufacturer.name,
-      })
-
-      if (manufacturerIsAlreadyExist) {
-        storage.manufacturer = manufacturerIsAlreadyExist
-      } else {
-        const newManufacturer = Manufacturer.build({
-          name: manufacturer.name,
-          info: manufacturer.info,
-        })
-
-        await newManufacturer.save()
-        storage.manufacturer = newManufacturer
-      }
-    }
-
-    if (itemCode) {
-      for (let code of itemCode) {
-        const itemCodeIsAlreadyExist = await ItemCode.findOne({
-          code: code,
-        })
-
-        if (itemCodeIsAlreadyExist) {
-          storage.itemCode.addToSet(itemCodeIsAlreadyExist)
-        } else {
-          const newItemCode = ItemCode.build({
-            code: code,
-          })
-
-          await newItemCode.save()
-          storage.itemCode.addToSet(newItemCode)
-        }
-      }
-    }
-
-    if (itemImages) {
-      for (let itemImage of itemImages) {
-        let itemImageIsAlreadyExist = await Images.findOne({
-          name: itemImage.name,
-          url: itemImage.url,
-        })
-
-        if (itemImageIsAlreadyExist) {
-          storage.itemImages?.addToSet(itemImageIsAlreadyExist)
-        } else {
-          let newImage = Images.build({
-            name: itemImage.name,
-            url: itemImage.url,
-          })
-
-          await newImage.save()
-
-          storage.itemImages?.addToSet(itemImageIsAlreadyExist)
-        }
       }
     }
 

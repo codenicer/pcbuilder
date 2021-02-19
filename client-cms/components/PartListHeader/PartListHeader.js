@@ -1,6 +1,6 @@
 import style from '../../styles/PartListHeader.module.scss'
 
-const PartListHeader = (props) => {
+const PartListHeader = ({ itemTypes }) => {
   return (
     <>
       <div className={style.partListHeaders}>
@@ -10,11 +10,13 @@ const PartListHeader = (props) => {
         <div className={style.select}>
           <label>filter:</label>
           <select>
-            <option>Part Type</option>
-            <option>Processor</option>
-            <option>Casing</option>
-            <option>Memory</option>
-            <option>Video Card</option>
+            {[{ name: 'Part Type', id: null }, ...itemTypes].map((type, i) => {
+              return (
+                <option key={i} value={type.id}>
+                  {type.name}
+                </option>
+              )
+            })}
           </select>
           <div className={style.select__arrow}></div>
         </div>

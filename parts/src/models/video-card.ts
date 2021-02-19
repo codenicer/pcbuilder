@@ -4,13 +4,13 @@ import { VoidExpression } from 'typescript'
 
 import { ChipsetDoc } from './chipset'
 import { InterfacesDoc } from './interface'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 import { MemoryTypeDoc } from './memory-type'
 import { PortTypeDoc } from './port-type'
 import { SliCrossfireTypeDoc } from './sli-crossfire-type'
 
-interface VideoCardAttrs extends ItemAttrs {
-  name: string
+interface VideoCardAttrs {
+  itemInfo: ItemsDoc
   chipset?: ChipsetDoc
   memoryType?: MemoryTypeDoc
   interfaces?: InterfacesDoc
@@ -27,8 +27,8 @@ interface VideoCardAttrs extends ItemAttrs {
   expansionSlotWidth?: number
 }
 
-export interface VideoCardDoc extends ItemDoc {
-  name: string
+export interface VideoCardDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   chipset: ChipsetDoc
   memoryType: MemoryTypeDoc
   interfaces: InterfacesDoc
@@ -51,8 +51,9 @@ interface VideoCardModel extends mongoose.PaginateModel<VideoCardDoc> {
 
 const videoCardSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     chipset: {
@@ -77,36 +78,6 @@ const videoCardSchema = new mongoose.Schema(
         ref: 'PortType',
       },
     ],
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
-    },
     frameSync: {
       type: String,
     },
@@ -133,11 +104,6 @@ const videoCardSchema = new mongoose.Schema(
     },
     expansionSlotWidth: {
       type: Number,
-    },
-    publish: {
-      type: Boolean,
-      required: true,
-      default: false,
     },
   },
   {

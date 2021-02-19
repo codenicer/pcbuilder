@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
 import { Casing } from '../../../models/casing'
+import { Items } from '../../../models/items'
 
 it('returns 404 if casing was not found', async () => {
   await request(app)
@@ -14,8 +15,14 @@ it('returns 404 if casing was not found', async () => {
 })
 
 it('updates casing if provided valid arguments', async () => {
-  const casing = Casing.build({
+  const itemInfo = Items.build({
     name: 'casingname',
+  })
+
+  await itemInfo.save()
+
+  const casing = Casing.build({
+    itemInfo,
   })
 
   await casing.save()
@@ -30,6 +37,7 @@ it('updates casing if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedCasing = await Casing.findById(id)
-  expect(updatedCasing!.name).toEqual('updatedcasingname')
+  let updatedCasing = await Casing.findById(id).populate('itemInfo')
+
+  expect(updatedCasing?.itemInfo!.name).toEqual('updatedcasingname')
 })

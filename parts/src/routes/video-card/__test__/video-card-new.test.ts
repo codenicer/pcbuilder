@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { VideoCard } from '../../../models/video-card'
 
 // import { natsWrapper } from '../../nats-wrapper';
@@ -183,10 +184,16 @@ it('returns 400 with invalid videocard arguments', async () => {
 })
 
 it('dont create duplicate videocard name', async () => {
-  const videocard = VideoCard.build({
-    name: 'videocardname',
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
   })
-  await videocard.save()
+  await itemInfo.save()
+
+  const video = VideoCard.build({
+    itemInfo,
+  })
+
+  await video.save()
 
   const res = await request(app)
     .post('/api/parts/videocard')

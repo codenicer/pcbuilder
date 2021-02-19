@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { PowerSupply } from '../../../models/power-supply'
 
 // import { natsWrapper } from '../../nats-wrapper';
@@ -120,10 +121,14 @@ it('returns 400 with invalid powersupply arguments', async () => {
 })
 
 it('dont create duplicate powersupply name', async () => {
-  const powerSupply = PowerSupply.build({
+  const itemInfo = Items.build({
     name: 'powersupplyname',
   })
 
+  await itemInfo.save()
+  const powerSupply = PowerSupply.build({
+    itemInfo,
+  })
   await powerSupply.save()
 
   const res = await request(app)

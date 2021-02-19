@@ -9,6 +9,7 @@ import {
   mandatoryItemRequimentsBodyChecker,
   validateArrayOfStrings,
 } from '../../utils/custom-function-extension'
+import { Items } from '../../models/items'
 import { Manufacturer } from '../../models/manufacturer'
 import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
@@ -103,14 +104,79 @@ router.post(
       measurements,
     } = req.body
 
-    const isAlreadyExist = await Casing.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    const casing = Casing.build({
+    const newItems = Items.build({
       name,
+      measurements,
+    })
+
+    if (manufacturer) {
+      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
+        name: manufacturer.name,
+      })
+
+      if (manufacturerIsAlreadyExist) {
+        newItems.manufacturer = manufacturerIsAlreadyExist
+      } else {
+        const newManufacturer = Manufacturer.build({
+          name: manufacturer.name,
+          info: manufacturer.info,
+        })
+
+        await newManufacturer.save()
+        newItems.manufacturer = newManufacturer
+      }
+    }
+
+    if (itemCode) {
+      for (let code of itemCode) {
+        const itemCodeIsAlreadyExist = await ItemCode.findOne({
+          code: code,
+        })
+
+        if (itemCodeIsAlreadyExist) {
+          newItems.itemCode.addToSet(itemCodeIsAlreadyExist)
+        } else {
+          const newItemCode = ItemCode.build({
+            code: code,
+          })
+
+          await newItemCode.save()
+          newItems.itemCode.addToSet(newItemCode)
+        }
+      }
+    }
+
+    if (itemImages) {
+      for (let itemImage of itemImages) {
+        let itemImageIsAlreadyExist = await Images.findOne({
+          name: itemImage.name,
+          url: itemImage.url,
+        })
+
+        if (itemImageIsAlreadyExist) {
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        } else {
+          let newImage = Images.build({
+            name: itemImage.name,
+            url: itemImage.url,
+          })
+
+          await newImage.save()
+
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        }
+      }
+    }
+
+    await newItems.save()
+
+    const casing = Casing.build({
       caseFrontPannelUsb,
       maxVideoCardLength,
       volume,
@@ -121,7 +187,7 @@ router.post(
       fullHeightExpansionSlot,
       internal25Bays,
       internal35Bays,
-      measurements,
+      itemInfo: newItems,
     })
 
     if (motherboardFromFactor) {
@@ -140,65 +206,6 @@ router.post(
           await newFormFactor.save()
 
           casing.motherboardFromFactor?.addToSet(newFormFactor)
-        }
-      }
-    }
-
-    if (manufacturer) {
-      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
-        name: manufacturer.name,
-      })
-
-      if (manufacturerIsAlreadyExist) {
-        casing.manufacturer = manufacturerIsAlreadyExist
-      } else {
-        const newManufacturer = Manufacturer.build({
-          name: manufacturer.name,
-          info: manufacturer.info,
-        })
-
-        await newManufacturer.save()
-        casing.manufacturer = newManufacturer
-      }
-    }
-
-    if (itemCode) {
-      for (let code of itemCode) {
-        const itemCodeIsAlreadyExist = await ItemCode.findOne({
-          code: code,
-        })
-
-        if (itemCodeIsAlreadyExist) {
-          casing.itemCode.addToSet(itemCodeIsAlreadyExist)
-        } else {
-          const newItemCode = ItemCode.build({
-            code: code,
-          })
-
-          await newItemCode.save()
-          casing.itemCode.addToSet(newItemCode)
-        }
-      }
-    }
-
-    if (itemImages) {
-      for (let itemImage of itemImages) {
-        let itemImageIsAlreadyExist = await Images.findOne({
-          name: itemImage.name,
-          url: itemImage.url,
-        })
-
-        if (itemImageIsAlreadyExist) {
-          casing.itemImages?.addToSet(itemImageIsAlreadyExist)
-        } else {
-          let newImage = Images.build({
-            name: itemImage.name,
-            url: itemImage.url,
-          })
-
-          await newImage.save()
-
-          casing.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }

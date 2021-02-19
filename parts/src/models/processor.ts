@@ -2,11 +2,10 @@ import mongoose from 'mongoose'
 import mongoosePaginate from 'mongoose-paginate-v2'
 import { CpuSeriesDoc } from './cpu-series'
 import { CpuCacheDoc } from './cpu-cache'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 
-interface ProcessorAttrs extends ItemAttrs {
-  name: string
-  series?: CpuSeriesDoc
+interface ProcessorAttrs {
+  itemInfo: ItemsDoc
   caches?: mongoose.Types.Array<CpuCacheDoc>
   coreFamily?: string
   integratedGraphic?: string
@@ -25,8 +24,8 @@ interface ProcessorAttrs extends ItemAttrs {
   multithreading?: boolean
 }
 
-export interface ProcessorDoc extends ItemDoc {
-  name: string
+export interface ProcessorDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   series: CpuSeriesDoc
   caches: mongoose.Types.Array<CpuCacheDoc>
   coreFamily: string
@@ -52,8 +51,9 @@ interface ProcessorModel extends mongoose.PaginateModel<ProcessorDoc> {
 
 const ProcessorSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     series: {
@@ -66,36 +66,6 @@ const ProcessorSchema = new mongoose.Schema(
         ref: 'CpuCache',
       },
     ],
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
-    },
     coreFamily: {
       type: String,
     },
@@ -140,11 +110,6 @@ const ProcessorSchema = new mongoose.Schema(
     },
     multithreading: {
       type: Boolean,
-    },
-    publish: {
-      type: Boolean,
-      required: true,
-      default: false,
     },
   },
   {
