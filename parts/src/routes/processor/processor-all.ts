@@ -17,7 +17,32 @@ router.get(
       {},
       {
         page: checkedPage,
-        populate: ['series', 'caches'],
+        populate: [
+          'series',
+          'caches',
+          {
+            path: 'itemInfo',
+            model: 'Items',
+            populate: [
+              {
+                path: 'manufacturer',
+                model: 'Manufacturer',
+              },
+              {
+                path: 'itemCode',
+                model: 'ItemCode',
+              },
+              {
+                path: 'itemImages',
+                model: 'Images',
+              },
+              {
+                path: 'itemType',
+                model: 'ItemType',
+              },
+            ],
+          },
+        ],
       }
     )
 

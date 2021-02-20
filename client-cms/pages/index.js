@@ -6,10 +6,12 @@ import MainSideBar from '../components/MainSidebar/MainSideBar'
 import PartList from '../components/PartList/PartList'
 import PartListHeader from '../components/PartListHeader/PartListHeader'
 import style from '../styles/Home.module.scss'
+import axios from 'axios'
+import { buildClient } from '../api/build-client'
 
 const Home = (props) => {
   const router = useRouter()
-  const { currentUser } = props
+  const { currentUser, itemTypes } = props
 
   useEffect(() => {
     if (!currentUser) {
@@ -33,7 +35,7 @@ const Home = (props) => {
             <>
               <MainSideBar />
               <div className={style.partListContainer}>
-                <PartListHeader />
+                <PartListHeader itemTypes={itemTypes} />
                 <PartList />
               </div>
             </>
@@ -43,6 +45,16 @@ const Home = (props) => {
       </div>
     </>
   )
+}
+
+Home.getInitialProps = async (appContext) => {
+  // console.log(appContext)
+  const client = await buildClient(appContext)
+  const res = await client.get('/api/parts/itemtype')
+
+  return {
+    itemTypes: res.data,
+  }
 }
 
 export default connect(null, { setUser })(Home)

@@ -19,6 +19,7 @@ import { PortType } from '../../models/port-type'
 import { Manufacturer } from '../../models/manufacturer'
 import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
+import { Items } from '../../models/items'
 
 const router = express.Router()
 
@@ -124,14 +125,80 @@ router.post(
       measurements,
     } = req.body
 
-    const isAlreadyExist = await VideoCard.findOne({ name })
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    const videocard = VideoCard.build({
+    const newItems = Items.build({
       name,
+      measurements,
+    })
+
+    if (manufacturer) {
+      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
+        name: manufacturer.name,
+      })
+
+      if (manufacturerIsAlreadyExist) {
+        newItems.manufacturer = manufacturerIsAlreadyExist
+      } else {
+        const newManufacturer = Manufacturer.build({
+          name: manufacturer.name,
+          info: manufacturer.info,
+        })
+
+        await newManufacturer.save()
+        newItems.manufacturer = newManufacturer
+      }
+    }
+
+    if (itemCode) {
+      for (let code of itemCode) {
+        const itemCodeIsAlreadyExist = await ItemCode.findOne({
+          code: code,
+        })
+
+        if (itemCodeIsAlreadyExist) {
+          newItems.itemCode.addToSet(itemCodeIsAlreadyExist)
+        } else {
+          const newItemCode = ItemCode.build({
+            code: code,
+          })
+
+          await newItemCode.save()
+          newItems.itemCode.addToSet(newItemCode)
+        }
+      }
+    }
+
+    if (itemImages) {
+      for (let itemImage of itemImages) {
+        let itemImageIsAlreadyExist = await Images.findOne({
+          name: itemImage.name,
+          url: itemImage.url,
+        })
+
+        if (itemImageIsAlreadyExist) {
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        } else {
+          let newImage = Images.build({
+            name: itemImage.name,
+            url: itemImage.url,
+          })
+
+          await newImage.save()
+
+          newItems.itemImages?.addToSet(itemImageIsAlreadyExist)
+        }
+      }
+    }
+
+    await newItems.save()
+
+    const videocard = VideoCard.build({
+      itemInfo: newItems,
       frameSync,
       cooling,
       externalPower,
@@ -141,7 +208,6 @@ router.post(
       tdp,
       effectiveMemoryClock,
       expansionSlotWidth,
-      measurements,
     })
 
     if (interfaces) {
@@ -234,65 +300,6 @@ router.post(
           await newPortType.save()
 
           videocard.ports?.addToSet(newPortType)
-        }
-      }
-    }
-
-    if (manufacturer) {
-      const manufacturerIsAlreadyExist = await Manufacturer.findOne({
-        name: manufacturer.name,
-      })
-
-      if (manufacturerIsAlreadyExist) {
-        videocard.manufacturer = manufacturerIsAlreadyExist
-      } else {
-        const newManufacturer = Manufacturer.build({
-          name: manufacturer.name,
-          info: manufacturer.info,
-        })
-
-        await newManufacturer.save()
-        videocard.manufacturer = newManufacturer
-      }
-    }
-
-    if (itemCode) {
-      for (let code of itemCode) {
-        const itemCodeIsAlreadyExist = await ItemCode.findOne({
-          code: code,
-        })
-
-        if (itemCodeIsAlreadyExist) {
-          videocard.itemCode.addToSet(itemCodeIsAlreadyExist)
-        } else {
-          const newItemCode = ItemCode.build({
-            code: code,
-          })
-
-          await newItemCode.save()
-          videocard.itemCode.addToSet(newItemCode)
-        }
-      }
-    }
-
-    if (itemImages) {
-      for (let itemImage of itemImages) {
-        let itemImageIsAlreadyExist = await Images.findOne({
-          name: itemImage.name,
-          url: itemImage.url,
-        })
-
-        if (itemImageIsAlreadyExist) {
-          videocard.itemImages?.addToSet(itemImageIsAlreadyExist)
-        } else {
-          let newImage = Images.build({
-            name: itemImage.name,
-            url: itemImage.url,
-          })
-
-          await newImage.save()
-
-          videocard.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }

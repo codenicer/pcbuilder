@@ -17,7 +17,31 @@ router.get(
       {},
       {
         page: checkedPage,
-        populate: ['cpuSocket', 'manufacturer', 'itemCode', 'itemImages'],
+        populate: [
+          'cpuSocket',
+          {
+            path: 'itemInfo',
+            model: 'Items',
+            populate: [
+              {
+                path: 'manufacturer',
+                model: 'Manufacturer',
+              },
+              {
+                path: 'itemCode',
+                model: 'ItemCode',
+              },
+              {
+                path: 'itemImages',
+                model: 'Images',
+              },
+              {
+                path: 'itemType',
+                model: 'ItemType',
+              },
+            ],
+          },
+        ],
       }
     )
 

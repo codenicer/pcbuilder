@@ -15,6 +15,7 @@ import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
 import { Casing } from '../../models/casing'
 import { FormFactor } from '../../models/form-factor'
+import { Items } from '../../models/items'
 
 const router = express.Router()
 
@@ -119,13 +120,19 @@ router.patch(
       throw new NotFoundError()
     }
 
-    const isAlreadyExist = await Casing.findOne({ name })
+    const itemInfo = await Items.findById({ _id: casing?.itemInfo })
+
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) casing.set({ name })
+    if (name) itemInfo.set({ name })
     if (caseFrontPannelUsb) casing.set({ caseFrontPannelUsb })
     if (maxVideoCardLength) casing.set({ maxVideoCardLength })
     if (volume) casing.set({ volume })
@@ -136,8 +143,8 @@ router.patch(
     if (fullHeightExpansionSlot) casing.set({ fullHeightExpansionSlot })
     if (internal25Bays) casing.set({ internal25Bays })
     if (internal35Bays) casing.set({ internal35Bays })
-    if (measurements) casing.set({ measurements })
-    if (typeof publish === 'boolean') casing.set({ publish })
+    if (measurements) itemInfo.set({ measurements })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
 
     if (motherboardFromFactor) {
       casing.set({ motherboardFromFactor: [] })
@@ -167,7 +174,9 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        casing.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.set({
+          manufacturer: manufacturerIsAlreadyExist,
+        })
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -175,12 +184,14 @@ router.patch(
         })
 
         await newManufacturer.save()
-        casing.manufacturer = newManufacturer
+        itemInfo.set({
+          manufacturer: newManufacturer,
+        })
       }
     }
 
     if (itemCode) {
-      casing.set({ newItemCode: [] })
+      itemInfo.set({ itemCode: [] })
 
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
@@ -188,20 +199,20 @@ router.patch(
         })
 
         if (itemCodeIsAlreadyExist) {
-          casing.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          casing.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      casing.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
 
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
@@ -210,7 +221,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          casing.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -219,17 +230,40 @@ router.patch(
 
           await newImage.save()
 
-          casing.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
 
+    await itemInfo.save()
     await casing.save()
     await casing
       .populate('motherboardFromFactor')
       .populate('manufacturer')
       .populate('itemCode')
       .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
       .execPopulate()
 
     res.status(200).send(casing)

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Processor } from '../../../models/processor'
 
 it('returns 404 if processor was not found', async () => {
@@ -14,10 +15,15 @@ it('returns 404 if processor was not found', async () => {
 })
 
 it('updates processor if provided valid arguments', async () => {
-  const processor = Processor.build({
-    name: 'processor',
+  const itemInfo = Items.build({
+    name: 'qweqweqweqweq',
   })
 
+  await itemInfo.save()
+
+  const processor = Processor.build({
+    itemInfo,
+  })
   await processor.save()
 
   const { _id: id } = processor
@@ -30,9 +36,9 @@ it('updates processor if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedProcessor = await Processor.findById(id)
+  let updatedProcessor = await Processor.findById(id).populate('itemInfo')
 
-  expect(updatedProcessor!.name).toEqual('updatedprocessorname')
+  expect(updatedProcessor!.itemInfo.name).toEqual('updatedprocessorname')
 
   await request(app)
     .patch(`/api/parts/processor/${id}`)
@@ -251,9 +257,9 @@ it('updates processor if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedProcessor = await Processor.findById(id)
+  updatedProcessor = await Processor.findById(id).populate('itemInfo')
 
-  expect(updatedProcessor!.publish).toEqual(false)
+  expect(updatedProcessor!.itemInfo.publish).toEqual(false)
 
   await request(app)
     .patch(`/api/parts/processor/${id}`)
@@ -266,10 +272,33 @@ it('updates processor if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedProcessor = await Processor.findById(id).populate('manufacturer')
+  updatedProcessor = await Processor.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedProcessor!.manufacturer.name).toEqual('manname')
-  expect(updatedProcessor!.manufacturer.info).toEqual('randominfo')
+  expect(updatedProcessor!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updatedProcessor!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/processor/${id}`)
@@ -279,9 +308,32 @@ it('updates processor if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedProcessor = await Processor.findById(id).populate('itemCode')
+  updatedProcessor = await Processor.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedProcessor!.itemCode.length).toEqual(1)
+  expect(updatedProcessor!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/processor/${id}`)
@@ -291,9 +343,32 @@ it('updates processor if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedProcessor = await Processor.findById(id).populate('itemImages')
+  updatedProcessor = await Processor.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedProcessor!.itemImages.length).toEqual(1)
+  expect(updatedProcessor!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/processor/${id}`)
@@ -309,8 +384,32 @@ it('updates processor if provided valid arguments', async () => {
     .expect(200)
 
   updatedProcessor = await Processor.findById(id)
-  expect(updatedProcessor!.measurements.length).toEqual(1)
-  expect(updatedProcessor!.measurements.width).toEqual(2)
-  expect(updatedProcessor!.measurements.height).toEqual(3)
-  expect(updatedProcessor!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+
+  expect(updatedProcessor!.itemInfo.measurements.length).toEqual(1)
+  expect(updatedProcessor!.itemInfo.measurements.width).toEqual(2)
+  expect(updatedProcessor!.itemInfo.measurements.height).toEqual(3)
+  expect(updatedProcessor!.itemInfo.measurements.dimension).toEqual('dimension')
 })

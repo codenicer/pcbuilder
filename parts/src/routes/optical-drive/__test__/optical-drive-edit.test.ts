@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { OpticalDrive } from '../../../models/optical-drive'
 
 it('returns 404 if optical drive was not found', async () => {
@@ -22,9 +23,17 @@ it('returns 404 if optical drive was not found', async () => {
 })
 
 it('updates optical drive if provided valid arguments', async () => {
-  const opticalDrive = OpticalDrive.build({
-    name: 'opticalDrive',
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
   })
+
+  await itemInfo.save()
+
+  const opticalDrive = OpticalDrive.build({
+    itemInfo,
+  })
+
+  await opticalDrive.save()
 
   await opticalDrive.save()
 
@@ -38,9 +47,9 @@ it('updates optical drive if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedOpticalDrive = await OpticalDrive.findById(id)
+  let updatedOpticalDrive = await OpticalDrive.findById(id).populate('itemInfo')
 
-  expect(updatedOpticalDrive!.name).toEqual('updatedopticaldrivename')
+  expect(updatedOpticalDrive!.itemInfo.name).toEqual('updatedopticaldrivename')
 
   await request(app)
     .patch(`/api/parts/opticaldrive/${id}`)
@@ -234,10 +243,33 @@ it('updates optical drive if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedOpticalDrive = await OpticalDrive.findById(id).populate('manufacturer')
+  updatedOpticalDrive = await OpticalDrive.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedOpticalDrive!.manufacturer.name).toEqual('manname')
-  expect(updatedOpticalDrive!.manufacturer.info).toEqual('randominfo')
+  expect(updatedOpticalDrive!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updatedOpticalDrive!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/opticaldrive/${id}`)
@@ -247,9 +279,32 @@ it('updates optical drive if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedOpticalDrive = await OpticalDrive.findById(id).populate('itemCode')
+  updatedOpticalDrive = await OpticalDrive.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedOpticalDrive!.itemCode.length).toEqual(1)
+  expect(updatedOpticalDrive!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/opticaldrive/${id}`)
@@ -259,9 +314,32 @@ it('updates optical drive if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedOpticalDrive = await OpticalDrive.findById(id).populate('itemImages')
+  updatedOpticalDrive = await OpticalDrive.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedOpticalDrive!.itemImages.length).toEqual(1)
+  expect(updatedOpticalDrive!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/opticaldrive/${id}`)
@@ -277,8 +355,33 @@ it('updates optical drive if provided valid arguments', async () => {
     .expect(200)
 
   updatedOpticalDrive = await OpticalDrive.findById(id)
-  expect(updatedOpticalDrive!.measurements.length).toEqual(1)
-  expect(updatedOpticalDrive!.measurements.width).toEqual(2)
-  expect(updatedOpticalDrive!.measurements.height).toEqual(3)
-  expect(updatedOpticalDrive!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+  expect(updatedOpticalDrive!.itemInfo.measurements.length).toEqual(1)
+  expect(updatedOpticalDrive!.itemInfo.measurements.width).toEqual(2)
+  expect(updatedOpticalDrive!.itemInfo.measurements.height).toEqual(3)
+  expect(updatedOpticalDrive!.itemInfo.measurements.dimension).toEqual(
+    'dimension'
+  )
 })

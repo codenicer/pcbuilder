@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { PowerSupply } from '../../../models/power-supply'
 
 it('returns 404 if power supply was not found', async () => {
@@ -14,10 +15,14 @@ it('returns 404 if power supply was not found', async () => {
 })
 
 it('updates power supply if provided valid arguments', async () => {
-  const powerSupply = PowerSupply.build({
-    name: 'powersupply',
+  const itemInfo = Items.build({
+    name: 'qweqweqweqweq',
   })
 
+  await itemInfo.save()
+  const powerSupply = PowerSupply.build({
+    itemInfo,
+  })
   await powerSupply.save()
 
   const { _id: id } = powerSupply
@@ -30,9 +35,9 @@ it('updates power supply if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedPowersupply = await PowerSupply.findById(id)
+  let updatedPowersupply = await PowerSupply.findById(id).populate('itemInfo')
 
-  expect(updatedPowersupply!.name).toEqual('updatedpowersupplyname')
+  expect(updatedPowersupply!.itemInfo.name).toEqual('updatedpowersupplyname')
 
   await request(app)
     .patch(`/api/parts/powersupply/${id}`)
@@ -129,9 +134,9 @@ it('updates power supply if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedPowersupply = await PowerSupply.findById(id)
+  updatedPowersupply = await PowerSupply.findById(id).populate('itemInfo')
 
-  expect(updatedPowersupply!.publish).toEqual(false)
+  expect(updatedPowersupply!.itemInfo.publish).toEqual(false)
 
   await request(app)
     .patch(`/api/parts/powersupply/${id}`)
@@ -144,10 +149,33 @@ it('updates power supply if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedPowersupply = await PowerSupply.findById(id).populate('manufacturer')
+  updatedPowersupply = await PowerSupply.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedPowersupply!.manufacturer.name).toEqual('manname')
-  expect(updatedPowersupply!.manufacturer.info).toEqual('randominfo')
+  expect(updatedPowersupply!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updatedPowersupply!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/powersupply/${id}`)
@@ -157,9 +185,32 @@ it('updates power supply if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedPowersupply = await PowerSupply.findById(id).populate('itemCode')
+  updatedPowersupply = await PowerSupply.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedPowersupply!.itemCode.length).toEqual(1)
+  expect(updatedPowersupply!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/powersupply/${id}`)
@@ -169,9 +220,32 @@ it('updates power supply if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedPowersupply = await PowerSupply.findById(id).populate('itemImages')
+  updatedPowersupply = await PowerSupply.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedPowersupply!.itemImages.length).toEqual(1)
+  expect(updatedPowersupply!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/powersupply/${id}`)
@@ -187,8 +261,34 @@ it('updates power supply if provided valid arguments', async () => {
     .expect(200)
 
   updatedPowersupply = await PowerSupply.findById(id)
-  expect(updatedPowersupply!.measurements.length).toEqual(1)
-  expect(updatedPowersupply!.measurements.width).toEqual(2)
-  expect(updatedPowersupply!.measurements.height).toEqual(3)
-  expect(updatedPowersupply!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+
+  expect(updatedPowersupply!.itemInfo.measurements.length).toEqual(1)
+  expect(updatedPowersupply!.itemInfo.measurements.width).toEqual(2)
+  expect(updatedPowersupply!.itemInfo.measurements.height).toEqual(3)
+  expect(updatedPowersupply!.itemInfo.measurements.dimension).toEqual(
+    'dimension'
+  )
 })

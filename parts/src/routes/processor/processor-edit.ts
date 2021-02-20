@@ -10,6 +10,7 @@ import { CpuCache } from '../../models/cpu-cache'
 import { CpuSeries } from '../../models/cpu-series'
 import { Images } from '../../models/images'
 import { ItemCode } from '../../models/item-code'
+import { Items } from '../../models/items'
 import { Manufacturer } from '../../models/manufacturer'
 import { Processor } from '../../models/processor'
 import { mandatoryItemRequimentsBodyChecker } from '../../utils/custom-function-extension'
@@ -167,13 +168,19 @@ router.patch(
       throw new NotFoundError()
     }
 
-    const isAlreadyExist = await Processor.findOne({ name })
+    const itemInfo = await Items.findById({ _id: processorDoesExist?.itemInfo })
+
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) processorDoesExist.set({ name })
+    if (name) itemInfo.set({ name })
     if (coreFamily) processorDoesExist.set({ coreFamily })
     if (integratedGraphic) processorDoesExist.set({ integratedGraphic })
     if (microarchitecture) processorDoesExist.set({ microarchitecture })
@@ -192,8 +199,8 @@ router.patch(
     if (typeof multithreading === 'boolean')
       processorDoesExist.set({ multithreading })
     if (tdp) processorDoesExist.set({ tdp })
-    if (typeof publish === 'boolean') processorDoesExist.set({ publish })
-    if (measurements) processorDoesExist.set({ measurements })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
+    if (measurements) itemInfo.set({ measurements })
 
     if (series) {
       const seriesIsAlreadyExist = await CpuSeries.findOne({
@@ -247,7 +254,7 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        processorDoesExist.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.manufacturer = manufacturerIsAlreadyExist
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -255,12 +262,12 @@ router.patch(
         })
 
         await newManufacturer.save()
-        processorDoesExist.manufacturer = newManufacturer
+        itemInfo.manufacturer = newManufacturer
       }
     }
 
     if (itemCode) {
-      processorDoesExist.set({ itemCode: [] })
+      itemInfo.set({ itemCode: [] })
 
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
@@ -268,20 +275,20 @@ router.patch(
         })
 
         if (itemCodeIsAlreadyExist) {
-          processorDoesExist.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          processorDoesExist.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      processorDoesExist.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
 
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
@@ -290,7 +297,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          processorDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -299,19 +306,40 @@ router.patch(
 
           await newImage.save()
 
-          processorDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
+
+    await itemInfo.save()
 
     await processorDoesExist.save()
 
     await processorDoesExist
       .populate('series')
       .populate('caches')
-      .populate('manufacturer')
-      .populate('itemCode')
-      .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
       .execPopulate()
 
     res.status(200).send(processorDoesExist)

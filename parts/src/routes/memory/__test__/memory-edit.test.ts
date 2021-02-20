@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Memory } from '../../../models/memory'
 // import { natsWrapper } from '../../nats-wrapper';
 
@@ -15,10 +16,14 @@ it('returns 404 if memory was not found', async () => {
 })
 
 it('updates memory if provided valid arguments', async () => {
-  const memory = Memory.build({
-    name: 'memoryname',
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
   })
 
+  await itemInfo.save()
+  const memory = Memory.build({
+    itemInfo,
+  })
   await memory.save()
 
   const { _id: id } = memory
@@ -31,9 +36,9 @@ it('updates memory if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updateMemory = await Memory.findById(id)
+  let updateMemory = await Memory.findById(id).populate('itemInfo')
 
-  expect(updateMemory!.name).toEqual('updatedmemoryname')
+  expect(updateMemory!.itemInfo.name).toEqual('updatedmemoryname')
 
   await request(app)
     .patch(`/api/parts/memory/${id}`)
@@ -150,10 +155,33 @@ it('updates memory if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updateMemory = await Memory.findById(id).populate('manufacturer')
+  updateMemory = await Memory.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updateMemory!.manufacturer.name).toEqual('manname')
-  expect(updateMemory!.manufacturer.info).toEqual('randominfo')
+  expect(updateMemory!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updateMemory!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/memory/${id}`)
@@ -163,8 +191,31 @@ it('updates memory if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updateMemory = await Memory.findById(id).populate('itemCode')
-  expect(updateMemory!.itemCode.length).toEqual(1)
+  updateMemory = await Memory.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+  expect(updateMemory!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/memory/${id}`)
@@ -173,8 +224,31 @@ it('updates memory if provided valid arguments', async () => {
       itemImages: [{ name: 'wewe', url: 'qweqe' }],
     })
     .expect(200)
-  updateMemory = await Memory.findById(id).populate('itemImages')
-  expect(updateMemory!.itemImages.length).toEqual(1)
+  updateMemory = await Memory.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+  expect(updateMemory!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/memory/${id}`)
@@ -189,8 +263,31 @@ it('updates memory if provided valid arguments', async () => {
     })
     .expect(200)
   updateMemory = await Memory.findById(id)
-  expect(updateMemory!.measurements.length).toEqual(1)
-  expect(updateMemory!.measurements.width).toEqual(2)
-  expect(updateMemory!.measurements.height).toEqual(3)
-  expect(updateMemory!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+  expect(updateMemory!.itemInfo.measurements.length).toEqual(1)
+  expect(updateMemory!.itemInfo.measurements.width).toEqual(2)
+  expect(updateMemory!.itemInfo.measurements.height).toEqual(3)
+  expect(updateMemory!.itemInfo.measurements.dimension).toEqual('dimension')
 })

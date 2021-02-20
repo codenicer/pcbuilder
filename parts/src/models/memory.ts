@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
 import mongoosePaginate from 'mongoose-paginate-v2'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 import { MemorySpeedDoc } from './memory-speed'
 import { MemoryTypeDoc } from './memory-type'
 
-interface MemoryAttrs extends ItemAttrs {
-  name: string
+interface MemoryAttrs {
+  itemInfo: ItemsDoc
   memorySpeed?: MemorySpeedDoc
   memoryType?: MemoryTypeDoc
   module?: string
@@ -16,8 +16,8 @@ interface MemoryAttrs extends ItemAttrs {
   heatSpreader?: boolean
 }
 
-export interface MemoryDoc extends ItemDoc {
-  name: string
+export interface MemoryDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   memorySpeed: MemorySpeedDoc
   memoryType: MemoryTypeDoc
   module: string
@@ -34,8 +34,9 @@ interface MemoryModel extends mongoose.PaginateModel<MemoryDoc> {
 
 const memorySchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     memorySpeed: {
@@ -47,36 +48,6 @@ const memorySchema = new mongoose.Schema(
       ref: 'MemoryType',
     },
 
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
-    },
     module: {
       type: String,
     },
@@ -93,9 +64,6 @@ const memorySchema = new mongoose.Schema(
       type: Number,
     },
     heatSpreader: {
-      type: Boolean,
-    },
-    pulish: {
       type: Boolean,
     },
   },

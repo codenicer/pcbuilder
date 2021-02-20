@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
 import { CpuCooler } from '../../../models/cpu-cooler'
+import { Items } from '../../../models/items'
 
 // import { natsWrapper } from '../../nats-wrapper';
 
@@ -79,17 +80,24 @@ it('returns 400 with invalid cpu cooler arguments', async () => {
 })
 
 it('dont create duplicate cpu cooler name', async () => {
-  const cpucooler = CpuCooler.build({
+  const itemInfo = Items.build({
     name: 'cpucoolername',
   })
 
-  await cpucooler.save()
+  await itemInfo.save()
+
+  const cpuCooler = CpuCooler.build({
+    itemInfo,
+  })
+  await cpuCooler.save()
+
   const res = await request(app)
     .post('/api/parts/cpucooler')
     .set('Cookie', global.signin())
     .send({
       name: 'cpucoolername',
     })
+    .expect(400)
 
   expect(res.body.errors[0].message).toEqual('Name is already exist')
 })

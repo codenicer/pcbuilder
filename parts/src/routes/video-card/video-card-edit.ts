@@ -21,6 +21,7 @@ import { PortType } from '../../models/port-type'
 import { Manufacturer } from '../../models/manufacturer'
 import { ItemCode } from '../../models/item-code'
 import { Images } from '../../models/images'
+import { Items } from '../../models/items'
 
 const router = express.Router()
 
@@ -120,13 +121,19 @@ router.patch(
       throw new NotFoundError()
     }
 
-    const isAlreadyExist = await VideoCard.findOne({ name })
+    const itemInfo = await Items.findById({ _id: videoCardDoesExist?.itemInfo })
+
+    if (!itemInfo) {
+      throw new NotFoundError()
+    }
+
+    const isAlreadyExist = await Items.findOne({ name })
 
     if (isAlreadyExist) {
       throw new BadRequestError('Name is already exist')
     }
 
-    if (name) videoCardDoesExist.set({ name })
+    if (name) itemInfo.set({ name })
     if (frameSync) videoCardDoesExist.set({ frameSync })
     if (cooling) videoCardDoesExist.set({ cooling })
     if (externalPower) videoCardDoesExist.set({ externalPower })
@@ -136,8 +143,8 @@ router.patch(
     if (tdp) videoCardDoesExist.set({ tdp })
     if (effectiveMemoryClock) videoCardDoesExist.set({ effectiveMemoryClock })
     if (expansionSlotWidth) videoCardDoesExist.set({ expansionSlotWidth })
-    if (typeof publish === 'boolean') videoCardDoesExist.set({ publish })
-    if (measurements) videoCardDoesExist.set({ measurements })
+    if (typeof publish === 'boolean') itemInfo.set({ publish })
+    if (measurements) itemInfo.set({ measurements })
 
     if (interfaces) {
       const interfacesIsAlreadyExist = await Interfaces.findOne({
@@ -240,7 +247,7 @@ router.patch(
       })
 
       if (manufacturerIsAlreadyExist) {
-        videoCardDoesExist.manufacturer = manufacturerIsAlreadyExist
+        itemInfo.manufacturer = manufacturerIsAlreadyExist
       } else {
         const newManufacturer = Manufacturer.build({
           name: manufacturer.name,
@@ -248,32 +255,32 @@ router.patch(
         })
 
         await newManufacturer.save()
-        videoCardDoesExist.manufacturer = newManufacturer
+        itemInfo.manufacturer = newManufacturer
       }
     }
 
     if (itemCode) {
-      videoCardDoesExist.set({ itemCode: [] })
+      itemInfo.set({ itemCode: [] })
       for (let code of itemCode) {
         const itemCodeIsAlreadyExist = await ItemCode.findOne({
           code: code,
         })
 
         if (itemCodeIsAlreadyExist) {
-          videoCardDoesExist.itemCode.addToSet(itemCodeIsAlreadyExist)
+          itemInfo.itemCode.addToSet(itemCodeIsAlreadyExist)
         } else {
           const newItemCode = ItemCode.build({
             code: code,
           })
 
           await newItemCode.save()
-          videoCardDoesExist.itemCode.addToSet(newItemCode)
+          itemInfo.itemCode.addToSet(newItemCode)
         }
       }
     }
 
     if (itemImages) {
-      videoCardDoesExist.set({ itemImages: [] })
+      itemInfo.set({ itemImages: [] })
       for (let itemImage of itemImages) {
         let itemImageIsAlreadyExist = await Images.findOne({
           name: itemImage.name,
@@ -281,7 +288,7 @@ router.patch(
         })
 
         if (itemImageIsAlreadyExist) {
-          videoCardDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         } else {
           let newImage = Images.build({
             name: itemImage.name,
@@ -290,11 +297,12 @@ router.patch(
 
           await newImage.save()
 
-          videoCardDoesExist.itemImages?.addToSet(itemImageIsAlreadyExist)
+          itemInfo.itemImages?.addToSet(itemImageIsAlreadyExist)
         }
       }
     }
 
+    await itemInfo.save()
     await videoCardDoesExist.save()
     await videoCardDoesExist
       .populate('chipset')
@@ -302,9 +310,28 @@ router.patch(
       .populate('interfaces')
       .populate('sliCrossfireType')
       .populate('ports')
-      .populate('manufacturer')
-      .populate('itemCode')
-      .populate('itemImages')
+      .populate({
+        path: 'itemInfo',
+        model: 'Items',
+        populate: [
+          {
+            path: 'manufacturer',
+            model: 'Manufacturer',
+          },
+          {
+            path: 'itemCode',
+            model: 'ItemCode',
+          },
+          {
+            path: 'itemImages',
+            model: 'Images',
+          },
+          {
+            path: 'itemType',
+            model: 'ItemType',
+          },
+        ],
+      })
       .execPopulate()
 
     res.status(200).send(videoCardDoesExist)

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { VideoCard } from '../../../models/video-card'
 
 it('returns 404 if videocard was not found', async () => {
@@ -14,8 +15,13 @@ it('returns 404 if videocard was not found', async () => {
 })
 
 it('updates videocard if provided valid arguments', async () => {
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+  await itemInfo.save()
+
   const videoCard = VideoCard.build({
-    name: 'videocard',
+    itemInfo,
   })
 
   await videoCard.save()
@@ -31,7 +37,31 @@ it('updates videocard if provided valid arguments', async () => {
     .expect(200)
 
   let updateVideoCard = await VideoCard.findById(id)
-  expect(updateVideoCard!.name).toEqual('updatedvideocardname')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+
+  expect(updateVideoCard!.itemInfo.name).toEqual('updatedvideocardname')
 
   await request(app)
     .patch(`/api/parts/videocard/${id}`)
@@ -230,8 +260,31 @@ it('updates videocard if provided valid arguments', async () => {
     .expect(200)
 
   updateVideoCard = await VideoCard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updateVideoCard!.publish).toEqual(true)
+  expect(updateVideoCard!.itemInfo.publish).toEqual(true)
 
   await request(app)
     .patch(`/api/parts/videocard/${id}`)
@@ -244,10 +297,33 @@ it('updates videocard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updateVideoCard = await VideoCard.findById(id).populate('manufacturer')
+  updateVideoCard = await VideoCard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updateVideoCard!.manufacturer.name).toEqual('manname')
-  expect(updateVideoCard!.manufacturer.info).toEqual('randominfo')
+  expect(updateVideoCard!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updateVideoCard!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/videocard/${id}`)
@@ -257,9 +333,32 @@ it('updates videocard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updateVideoCard = await VideoCard.findById(id).populate('itemCode')
+  updateVideoCard = await VideoCard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updateVideoCard!.itemCode.length).toEqual(1)
+  expect(updateVideoCard!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/videocard/${id}`)
@@ -269,9 +368,32 @@ it('updates videocard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updateVideoCard = await VideoCard.findById(id).populate('itemImages')
+  updateVideoCard = await VideoCard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updateVideoCard!.itemImages.length).toEqual(1)
+  expect(updateVideoCard!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/videocard/${id}`)
@@ -285,10 +407,33 @@ it('updates videocard if provided valid arguments', async () => {
       },
     })
     .expect(200)
-
   updateVideoCard = await VideoCard.findById(id)
-  expect(updateVideoCard!.measurements.length).toEqual(1)
-  expect(updateVideoCard!.measurements.width).toEqual(2)
-  expect(updateVideoCard!.measurements.height).toEqual(3)
-  expect(updateVideoCard!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+
+  expect(updateVideoCard!.itemInfo.measurements.length).toEqual(1)
+  expect(updateVideoCard!.itemInfo.measurements.width).toEqual(2)
+  expect(updateVideoCard!.itemInfo.measurements.height).toEqual(3)
+  expect(updateVideoCard!.itemInfo.measurements.dimension).toEqual('dimension')
 })

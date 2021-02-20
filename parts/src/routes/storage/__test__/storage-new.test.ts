@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Storage } from '../../../models/storage'
 
 it('returns 400 with invalid storage arguments', async () => {
@@ -109,8 +110,14 @@ it('returns 400 with invalid storage arguments', async () => {
 })
 
 it('dont create duplicate storage name', async () => {
-  const storage = Storage.build({
+  const itemInfo = Items.build({
     name: 'storagename',
+  })
+
+  await itemInfo.save()
+
+  const storage = Storage.build({
+    itemInfo,
   })
   await storage.save()
 

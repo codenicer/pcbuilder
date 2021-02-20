@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 import mongoosePaginate from 'mongoose-paginate-v2'
 import { CpuSocketDoc } from './cpu-socket'
-import { ItemAttrs, ItemDoc } from './item'
+import { ItemsDoc } from './items'
 
-interface CpuCoolerAttrs extends ItemAttrs {
-  name: string
+interface CpuCoolerAttrs {
+  itemInfo: ItemsDoc
   cpuSocket?: mongoose.Types.Array<CpuSocketDoc>
   coolerModel?: string
   fanRpm?: {
@@ -20,8 +20,8 @@ interface CpuCoolerAttrs extends ItemAttrs {
   fanless?: boolean
 }
 
-interface CpuCoolerDoc extends ItemDoc {
-  name: string
+interface CpuCoolerDoc extends mongoose.Document {
+  itemInfo: ItemsDoc
   cpuSocket: mongoose.Types.Array<CpuSocketDoc>
   coolerModel: string
   fanRpm: {
@@ -43,8 +43,9 @@ interface CpuCoolerModel extends mongoose.PaginateModel<CpuCoolerDoc> {
 
 const cpuCoolerSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    itemInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Items',
       required: true,
     },
     cpuSocket: [
@@ -53,36 +54,6 @@ const cpuCoolerSchema = new mongoose.Schema(
         ref: 'CpuSocket',
       },
     ],
-    manufacturer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Manufacturer',
-    },
-    itemCode: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemCode',
-      },
-    ],
-    itemImages: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Images',
-      },
-    ],
-    measurements: {
-      length: {
-        type: Number,
-      },
-      width: {
-        type: Number,
-      },
-      height: {
-        type: Number,
-      },
-      dimension: {
-        type: String,
-      },
-    },
     coolerModel: {
       type: String,
     },
@@ -110,11 +81,6 @@ const cpuCoolerSchema = new mongoose.Schema(
     },
     fanless: {
       type: Boolean,
-    },
-    publish: {
-      type: Boolean,
-      required: true,
-      default: false,
     },
   },
   {

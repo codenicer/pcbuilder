@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { MotherBoard } from '../../../models/motherboard'
 // import { natsWrapper } from '../../nats-wrapper';
 
@@ -15,8 +16,14 @@ it('returns 404 if motherboard was not found', async () => {
 })
 
 it('updates motherboard if provided valid arguments', async () => {
+  const itemInfo = Items.build({
+    name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+
   const motherboard = MotherBoard.build({
-    name: 'motherboardname',
+    itemInfo,
   })
 
   await motherboard.save()
@@ -31,8 +38,8 @@ it('updates motherboard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  let updatedMotherboard = await MotherBoard.findById(id)
-  expect(updatedMotherboard!.name).toEqual('updatedmotherboardname')
+  let updatedMotherboard = await MotherBoard.findById(id).populate('itemInfo')
+  expect(updatedMotherboard!.itemInfo.name).toEqual('updatedmotherboardname')
 
   await request(app)
     .patch(`/api/parts/motherboard/${id}`)
@@ -185,10 +192,10 @@ it('updates motherboard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedMotherboard = await MotherBoard.findById(id)
+  updatedMotherboard = await MotherBoard.findById(id).populate('itemInfo')
 
   //@ts-ignore
-  expect(updatedMotherboard.publish).toEqual(true)
+  expect(updatedMotherboard.itemInfo.publish).toEqual(true)
 
   await request(app)
     .patch(`/api/parts/motherboard/${id}`)
@@ -262,10 +269,33 @@ it('updates motherboard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedMotherboard = await MotherBoard.findById(id).populate('manufacturer')
+  updatedMotherboard = await MotherBoard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedMotherboard!.manufacturer.name).toEqual('manname')
-  expect(updatedMotherboard!.manufacturer.info).toEqual('randominfo')
+  expect(updatedMotherboard!.itemInfo.manufacturer.name).toEqual('manname')
+  expect(updatedMotherboard!.itemInfo.manufacturer.info).toEqual('randominfo')
 
   await request(app)
     .patch(`/api/parts/motherBoard/${id}`)
@@ -275,9 +305,32 @@ it('updates motherboard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedMotherboard = await MotherBoard.findById(id).populate('itemCode')
+  updatedMotherboard = await MotherBoard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedMotherboard!.itemCode.length).toEqual(1)
+  expect(updatedMotherboard!.itemInfo.itemCode.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/motherBoard/${id}`)
@@ -287,9 +340,32 @@ it('updates motherboard if provided valid arguments', async () => {
     })
     .expect(200)
 
-  updatedMotherboard = await MotherBoard.findById(id).populate('itemImages')
+  updatedMotherboard = await MotherBoard.findById(id)
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
 
-  expect(updatedMotherboard!.itemImages.length).toEqual(1)
+  expect(updatedMotherboard!.itemInfo.itemImages.length).toEqual(1)
 
   await request(app)
     .patch(`/api/parts/motherBoard/${id}`)
@@ -305,8 +381,33 @@ it('updates motherboard if provided valid arguments', async () => {
     .expect(200)
 
   updatedMotherboard = await MotherBoard.findById(id)
-  expect(updatedMotherboard!.measurements.length).toEqual(1)
-  expect(updatedMotherboard!.measurements.width).toEqual(2)
-  expect(updatedMotherboard!.measurements.height).toEqual(3)
-  expect(updatedMotherboard!.measurements.dimension).toEqual('dimension')
+    .populate({
+      path: 'itemInfo',
+      model: 'Items',
+      populate: [
+        {
+          path: 'manufacturer',
+          model: 'Manufacturer',
+        },
+        {
+          path: 'itemCode',
+          model: 'ItemCode',
+        },
+        {
+          path: 'itemImages',
+          model: 'Images',
+        },
+        {
+          path: 'itemType',
+          model: 'ItemType',
+        },
+      ],
+    })
+    .exec()
+  expect(updatedMotherboard!.itemInfo.measurements.length).toEqual(1)
+  expect(updatedMotherboard!.itemInfo.measurements.width).toEqual(2)
+  expect(updatedMotherboard!.itemInfo.measurements.height).toEqual(3)
+  expect(updatedMotherboard!.itemInfo.measurements.dimension).toEqual(
+    'dimension'
+  )
 })

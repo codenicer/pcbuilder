@@ -1,6 +1,8 @@
 import request from 'supertest'
 import { app } from '../../../app'
 import { Casing } from '../../../models/casing'
+import { Items } from '../../../models/items'
+import mongoose from 'mongoose'
 
 // import { natsWrapper } from '../../nats-wrapper';
 
@@ -155,8 +157,13 @@ it('returns 400 with invalid casing arguments', async () => {
 })
 
 it('dont create duplicate casing name', async () => {
-  const casing = Casing.build({
+  const itemInfo = Items.build({
     name: 'casingname',
+  })
+  await itemInfo.save()
+
+  const casing = Casing.build({
+    itemInfo,
   })
   await casing.save()
 

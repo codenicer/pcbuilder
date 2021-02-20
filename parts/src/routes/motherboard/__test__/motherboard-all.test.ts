@@ -1,13 +1,21 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { MotherBoard } from '../../../models/motherboard'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createMotherboard() {
-  const motherboard = MotherBoard.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
   })
+
+  await itemInfo.save()
+
+  const motherboard = MotherBoard.build({
+    itemInfo,
+  })
+
   await motherboard.save()
 }
 

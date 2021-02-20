@@ -1,11 +1,18 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
+import { Items } from '../../../models/items'
 import { Storage } from '../../../models/storage'
 
 async function createStorage() {
-  const storage = Storage.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+
+  await itemInfo.save()
+
+  const storage = Storage.build({
+    itemInfo,
   })
   await storage.save()
 }

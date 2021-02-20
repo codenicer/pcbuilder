@@ -2,11 +2,17 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { app } from '../../../app'
 import { Casing } from '../../../models/casing'
+import { Items } from '../../../models/items'
 // import { natsWrapper } from '../../nats-wrapper';
 
 async function createCasing() {
-  const casing = Casing.build({
+  const itemInfo = Items.build({
     name: mongoose.Types.ObjectId().toHexString().slice(0, 5),
+  })
+  await itemInfo.save()
+
+  const casing = Casing.build({
+    itemInfo: itemInfo,
   })
   await casing.save()
 }
